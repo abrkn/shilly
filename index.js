@@ -29,13 +29,13 @@ const fetchMempool = async coin => {
   const channel = client.channels.get(DISCORD_CHANNEL_ID);
   assert(channel, `Channel ${DISCORD_CHANNEL_ID} not found`);
 
-  const getPriceMessage = async () => {
+  const getPriceMessage = async coin => {
     const { body } = await superagent('https://api.coinmarketcap.com/v1/ticker/?limit=10');
-    const [item] = body.filter(_ => _.id === 'bitcoin-cash');
+    const [item] = body.filter(_ => _.id === coin);
 
     const vol24h = numeral(item['24h_volume_usd']).format('0.0a');
 
-    const text = `${item.name} Price: $${item.price_usd} / ${item.price_btc} BTC; Volume 24h: $${vol24h}; Change 24h: ${item.percent_change_24h}%`;
+    const text = `Price: $${item.price_usd} / ${item.price_btc} BTC; Volume 24h: $${vol24h}; Change 24h: ${item.percent_change_24h}%`;
 
     return text;
   };
@@ -44,7 +44,13 @@ const fetchMempool = async coin => {
     const say = (..._) => message.channel.send(_);
 
     if (message.content === '!price') {
-      getPriceMessage().then(_ => message.channel.send(_));
+      const [cash, core] = await Promise.all([
+        getPriceMessage('bitcoin-cash'),
+        getPriceMessage('bitcoin'),
+      ]);
+
+      await say(`**Bitcoin Cash** ${cash}`);
+      await say(`Bitcoin Core ${core}`);
     }
 
     if (message.content === '!help') {
