@@ -9,6 +9,16 @@ const { DISCORD_TOKEN, PRICE_INTERVAL = 10 * 60e3, DISCORD_CHANNEL_ID } = proces
 assert(DISCORD_TOKEN, 'DISCORD_TOKEN');
 assert(DISCORD_CHANNEL_ID, 'DISCORD_CHANNEL_ID');
 
+const printError = (...args) => console.error(...args);
+const n = (value, format) => numeral(value).format(format);
+
+const fetchMempool = async coin => {
+  const { text } = await superagent(`https://api.blockchair.com/${coin}/mempool?u=${+new Date()}`);
+  const body = JSON.parse(text);
+  const [mempool] = body.data.filter(_ => _.e === 'mempool_transactions');
+  return +mempool.c;
+};
+
 (async () => {
   const client = new Discord.Client();
   client.login(DISCORD_TOKEN);
@@ -30,16 +40,26 @@ assert(DISCORD_CHANNEL_ID, 'DISCORD_CHANNEL_ID');
     return text;
   };
 
-  client.on('message', message => {
+  client.on('message', message => (async () => {
+    const say = (..._) => message.channel.send(_);
+
     if (message.content === '!price') {
       getPriceMessage().then(_ => message.channel.send(_));
     }
-  });
 
-  while (true) {
-    const text = await getPriceMessage();
-    await channel.send(text);
+    if (message.content === '!help') {
+      message.channel.send('!help !price !mempool');
+    }
 
-    await delay(PRICE_INTERVAL);
-  }
+    if (message.content === '!mempool') {
+      const [cash, core] = await Promise.all([
+        fetchMempool('bitcoin-cash'),
+        fetchMempool('bitcoin'),
+      ]);
+
+      const text = `**Unconfirmed Transactions**:\nBitcoin Cash: ${n(cash, '0,0')}\nBitcoin Core: ${n(core, '0,0')}`;
+
+      say(text);
+    }
+  })().catch(printError));
 })().then(_ => _);
