@@ -60,7 +60,7 @@ const fetchMempool = async coin => {
     }
 
     if (message.content === '!help') {
-      message.channel.send('!help !about !price !mempool');
+      message.channel.send('!help !about !price !mempool !flip');
     }
 
     if (message.content === '!about') {
