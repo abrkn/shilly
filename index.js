@@ -19,13 +19,25 @@ assert(DISCORD_CHANNEL_ID, 'DISCORD_CHANNEL_ID');
   const channel = client.channels.get(DISCORD_CHANNEL_ID);
   assert(channel, `Channel ${DISCORD_CHANNEL_ID} not found`);
 
-  while (true) {
+  const getPriceMessage = async () => {
     const { body } = await superagent('https://api.coinmarketcap.com/v1/ticker/?limit=10');
     const [item] = body.filter(_ => _.id === 'bitcoin-cash');
 
     const vol24h = numeral(item['24h_volume_usd']).format('0.0a');
 
     const text = `${item.name} Price: $${item.price_usd} / ${item.price_btc} BTC; Volume 24h: $${vol24h}; Change 24h: ${item.percent_change_24h}%`;
+
+    return text;
+  };
+
+  client.on('message', message => {
+    if (message.content === '!price') {
+      getPriceMessage().then(_ => message.channel.send(_));
+    }
+  });
+
+  while (true) {
+    const text = await getPriceMessage();
     await channel.send(text);
 
     await delay(PRICE_INTERVAL);
