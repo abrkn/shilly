@@ -48,7 +48,13 @@ const fetchMempool = async coin => {
     }
 
     if (message.content === '!help') {
-      message.channel.send('!help !price !mempool');
+      message.channel.send('!help !about !price !mempool');
+    }
+
+    if (message.content === '!about') {
+      const { name, version } = require('./package.json');
+
+      message.channel.send(`${name} v${version}. See https://github.com/abrkn/shilly`);
     }
 
     if (message.content === '!mempool') {
