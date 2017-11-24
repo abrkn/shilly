@@ -3,6 +3,7 @@ const Discord = require('discord.js');
 const delay = require('delay');
 const superagent = require('superagent');
 const numeral = require('numeral');
+const Xray = require('x-ray');
 const createFlipChart = require('./createFlipChart');
 const { formatNumber: n } = require('./utils');
 
@@ -20,6 +21,22 @@ const fetchMempool = async coin => {
   const [mempool] = body.data.filter(_ => _.e === 'mempool_transactions');
   return +mempool.c;
 };
+
+const fetchDifficultyAdjustmentEstimate = () => new Promise((resolve, reject) => {
+  const x = Xray();
+
+  x('https://bitcoinwisdom.com/bitcoin/difficulty', 'table:nth-child(2) tr:nth-child(3) td:nth-child(2)')((err, res) => {
+    if (err) {
+      return reject(err);
+    }
+
+    const withoutEscapes = res.replace(/[\n\t]/g, '');
+    const withSpace = withoutEscapes.replace(/,/, ', ');
+    const lowerCase = withSpace.toLowerCase();
+
+    resolve(lowerCase);
+  });
+});
 
 (async () => {
   const client = new Discord.Client();
@@ -60,7 +77,7 @@ const fetchMempool = async coin => {
     }
 
     if (message.content === '!help') {
-      message.channel.send('!help !about !price !mempool !flip');
+      message.channel.send('!help !about !price !mempool !flip !cashening');
     }
 
     if (message.content === '!about') {
@@ -78,6 +95,11 @@ const fetchMempool = async coin => {
       const text = `**Unconfirmed Transactions**:\nBitcoin Cash: ${n(cash, '0,0')}\nBitcoin Core: ${n(core, '0,0')}`;
 
       say(text);
+    }
+
+    if (message.content === '!cashening') {
+      const text = await fetchDifficultyAdjustmentEstimate();
+      say(`The Cashening will occur ${text}`);
     }
 
     if (message.content === '!flip') {
