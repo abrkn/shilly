@@ -7,7 +7,7 @@ const Xray = require('x-ray');
 const createFlipChart = require('./createFlipChart');
 const { formatNumber: n } = require('./utils');
 
-const { DISCORD_TOKEN, PRICE_INTERVAL = 10 * 60e3, DISCORD_CHANNEL_ID } = process.env;
+const { DISCORD_TOKEN, PRICE_INTERVAL = 10 * 60e3, DISCORD_CHANNEL_ID, DISCORD_WELCOME_MESSAGE } = process.env;
 
 assert(DISCORD_TOKEN, 'DISCORD_TOKEN');
 assert(DISCORD_CHANNEL_ID, 'DISCORD_CHANNEL_ID');
@@ -43,6 +43,14 @@ const fetchDifficultyAdjustmentEstimate = () => new Promise((resolve, reject) =>
 
   // Wait for connect
   await new Promise(resolve => client.on('ready', resolve));
+
+  client.on('guildMemberAdd', member => {
+    if (!DISCORD_WELCOME_MESSAGE) {
+      return;
+    }
+
+    member.send(DISCORD_WELCOME_MESSAGE);
+  });
 
   const channel = client.channels.get(DISCORD_CHANNEL_ID);
   assert(channel, `Channel ${DISCORD_CHANNEL_ID} not found`);
