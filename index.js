@@ -14,7 +14,6 @@ assert(DISCORD_CHANNEL_ID, 'DISCORD_CHANNEL_ID');
 
 const printError = (...args) => console.error(...args);
 
-
 const fetchMempool = async coin => {
   const { text } = await superagent(`https://api.blockchair.com/${coin}/mempool?u=${+new Date()}`);
   const body = JSON.parse(text);
