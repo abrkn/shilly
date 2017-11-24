@@ -1,7 +1,10 @@
 const ChartjsNode = require('chartjs-node');
 const { formatNumber: n } = require('./utils');
 
-const createFlipChart = async ratio => {
+const CORE_ORANGE = 'rgba(237,163,77, 0.7)';
+const CASH_GREEN = 'rgb(113, 197, 89)';
+
+const createFlipChart = async (ratio, { width = 300, height = 350 } = {}) => {
   const cashRatioText = n(ratio, '0.00%');
   const coreRatioText = n(1 - ratio, '0.00%');
 
@@ -11,22 +14,45 @@ const createFlipChart = async ratio => {
       {
         label: 'Market Cap (USD)',
         data: [ratio, 1 - ratio],
-        backgroundColor: ['rgb(113, 197, 89)', 'rgb(237,163,77)'],
+        backgroundColor: [CASH_GREEN, CORE_ORANGE],
+        borderColor: ['#fff', '#fff'],
       },
     ],
   };
 
   const chartOptions = {
+    backgroundColor: '#fff',
     chartArea: {
       backgroundColor: '#fff',
     },
+    legend: {
+      labels: {
+        fontColor: '#000',
+      },
+    },
+    layout: {
+      padding: { left: 8, right: 8, top: 8, bottom: 16 }
+    },
+    title: {
+      display: true,
+      text: `The Cashening (${new Date().toISOString().substr(0, 10)})`,
+      fontColor: '#000',
+    }
   };
 
   const plugin = {
     beforeDraw: function (chart, easing) {
+      const { helpers } = ChartjsNode;
+      const { ctx } = chart.chart;
+
+      if (chart.config.options.backgroundColor) {
+        ctx.save();
+        ctx.fillStyle = chart.config.options.backgroundColor;
+        ctx.fillRect(0, 0, chart.width, chart.height);
+        ctx.restore();
+      }
+
       if (chart.config.options.chartArea && chart.config.options.chartArea.backgroundColor) {
-        var helpers = ChartjsNode.helpers;
-        var ctx = chart.chart.ctx;
         var chartArea = chart.chartArea;
 
         ctx.save();
@@ -38,14 +64,13 @@ const createFlipChart = async ratio => {
   };
 
   const options = {
-    type: 'pie',
+    type: 'doughnut',
     data: data,
     options: chartOptions,
     plugins: [plugin],
   };
 
-  // 600x600 canvas size
-  const chartNode = new ChartjsNode(600, 600);
+  const chartNode = new ChartjsNode(width, height);
 
   await chartNode.drawChart(options);
 

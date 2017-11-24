@@ -89,7 +89,7 @@ const fetchMempool = async coin => {
       const ratio = cash.market_cap_usd / core.market_cap_usd;
       const chart = await createFlipChart(ratio);
 
-      await message.channel.sendFile(chart, 'cashening.png');
+      await message.channel.sendFile(chart, `the-cashening-${+new Date()}.png`);
     }
   })().catch(printError));
 })().then(_ => _);
