@@ -4,6 +4,7 @@ const delay = require('delay');
 const superagent = require('superagent');
 const numeral = require('numeral');
 const Xray = require('x-ray');
+const { shuffle } = require('lodash');
 const createFlipChart = require('./createFlipChart');
 const { formatNumber: n } = require('./utils');
 const bluebird = require('bluebird');
@@ -106,11 +107,9 @@ const fetchDifficultyAdjustmentEstimate = () => new Promise((resolve, reject) =>
 
       const members = channel.members.array()
         .filter(_ => !_.user.bot && channel.guild.presences.get(_.user.id) &&
-          channel.guild.presences.get(_.user.id).status == 'online')
-        .slice()
-        .sort(() => Math.random());
+          channel.guild.presences.get(_.user.id).status == 'online');
 
-      const [member] = members;
+      const [member] = shuffle(members);
       assert(member);
 
       console.log(`Raffle drew ${member.user.username} from a list of ${members.length} candidates`);
