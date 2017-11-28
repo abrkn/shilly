@@ -6,13 +6,27 @@ const numeral = require('numeral');
 const Xray = require('x-ray');
 const createFlipChart = require('./createFlipChart');
 const { formatNumber: n } = require('./utils');
+const bluebird = require('bluebird');
+const redis = require('redis');
+const createQrCode = require('./createQrCode');
 
-const { DISCORD_TOKEN, PRICE_INTERVAL = 10 * 60e3, DISCORD_CHANNEL_ID, DISCORD_WELCOME_MESSAGE } = process.env;
+bluebird.promisifyAll(redis.RedisClient.prototype);
+bluebird.promisifyAll(redis.Multi.prototype);
+
+const { DISCORD_TOKEN, PRICE_INTERVAL = 10 * 60e3, DISCORD_CHANNEL_ID, DISCORD_WELCOME_MESSAGE, REDIS_URL = 'redis://localhost',
+  RAFFLE_INTERVAL = 24 * 60 * 60e3 } = process.env;
 
 assert(DISCORD_TOKEN, 'DISCORD_TOKEN');
 assert(DISCORD_CHANNEL_ID, 'DISCORD_CHANNEL_ID');
+assert(REDIS_URL, 'REDIS_URL');
+
+const redisClient = redis.createClient(REDIS_URL);
 
 const printError = (...args) => console.error(...args);
+
+function randomIntFromInterval(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
 
 const fetchMempool = async coin => {
   const { text } = await superagent(`https://api.blockchair.com/${coin}/mempool?u=${+new Date()}`);
@@ -70,6 +84,53 @@ const fetchDifficultyAdjustmentEstimate = () => new Promise((resolve, reject) =>
     return text;
   };
 
+  const raffle = async () => {
+    while (true) {
+      const nextRaffle = +(await redisClient.getAsync('shilly.raffle.nextRaffle') || 0);
+
+      if (nextRaffle > +new Date()) {
+        await delay(10e3); // Makes updating manually easier
+        continue;
+      }
+
+      const keyPair = await redisClient.lpopAsync('shilly.raffle.keyPairs');
+
+      if (!keyPair) {
+        console.error('There are no more keys in shilly.raffle.keyPairs');
+        await delay(10e3); // Makes updating manually easier
+        continue;
+      }
+
+      const [address, key] = keyPair.split(/,/);
+      assert(address && key);
+
+      const members = channel.members.array()
+        .filter(_ => !_.user.bot && channel.guild.presences.get(_.user.id) &&
+          channel.guild.presences.get(_.user.id).status == 'online')
+        .slice()
+        .sort(() => Math.random());
+
+      const [member] = members;
+      assert(member);
+
+      console.log(`Raffle drew ${member.user.username} from a list of ${members.length} candidates`);
+
+      // Schedule next raffle
+      await await redisClient.setAsync(
+        'shilly.raffle.nextRaffle',
+        randomIntFromInterval(+new Date(), +new Date() + +RAFFLE_INTERVAL));
+
+      const explorerUrl = `https://explorer.bitcoin.com/bch/address/${address}`;
+
+      await channel.send(`@${member.user.username} has won the random raffle! I've PM'd you instructions.\n\nHere's what they won: ${explorerUrl}\n\nFor the rest of you, stay logged in the chat and you could be next!`);
+
+      await member.send(`You have won the random raffle! Scan this QR code in your Bitcoin.com wallet to sweep the Bitcoin Cash:`);
+
+      const qr = await createQrCode(key);
+      await member.sendFile(qr, `bitcoin-cash-raffle-winner-${+new Date()}.png`);
+    }
+  };
+
   client.on('message', message => (async () => {
     const say = (..._) => message.channel.send(_);
 
@@ -121,4 +182,8 @@ const fetchDifficultyAdjustmentEstimate = () => new Promise((resolve, reject) =>
       await message.channel.sendFile(chart, `the-cashening-${+new Date()}.png`);
     }
   })().catch(printError));
+
+  await Promise.all([
+    raffle(),
+  ]);
 })().then(_ => _);
