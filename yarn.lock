@@ -528,6 +528,10 @@ formidable@~1.0.14:
   version "1.0.17"
   resolved "https://registry.yarnpkg.com/formidable/-/formidable-1.0.17.tgz#ef5491490f9433b705faa77249c99029ae348559"
 
+get-stdin@5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/get-stdin/-/get-stdin-5.0.1.tgz#122e161591e21ff4c52530305693f20e6393a398"
+
 getpass@^0.1.1:
   version "0.1.7"
   resolved "https://registry.yarnpkg.com/getpass/-/getpass-0.1.7.tgz#5eff8e3e684d569ae4cb2b1282604e8ba62149fa"
@@ -916,6 +920,10 @@ qs@^6.5.1, qs@~6.5.1:
 querystring@^0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/querystring/-/querystring-0.2.0.tgz#b209849203bb25df820da756e747005878521620"
+
+randgen@0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/randgen/-/randgen-0.1.0.tgz#4c8dd60d72c013953d2dc63f6e0f4193072408a8"
 
 readable-stream@1.0.27-1:
   version "1.0.27-1"
