@@ -36,6 +36,13 @@ const fetchMempool = async coin => {
   return +mempool.c;
 };
 
+const fetchBchAddressBalance = async (address) => {
+  const { body } = await superagent(`https://blockdozer.com/insight-api/addr/${address}/?noTxList=1`);
+  console.log(body);
+  const { balance } = body;
+  return balance;
+}
+
 const fetchDifficultyAdjustmentEstimate = () => new Promise((resolve, reject) => {
   const x = Xray();
 
@@ -119,9 +126,29 @@ const fetchDifficultyAdjustmentEstimate = () => new Promise((resolve, reject) =>
         'shilly.raffle.nextRaffle',
         randomIntFromInterval(+new Date(), +new Date() + +RAFFLE_INTERVAL));
 
+      let bchAmount;
+      let usdAmount;
+
+      try {
+        bchAmount = await fetchBchAddressBalance(address);
+      } catch (error) {
+        console.error(`Failed to fetch BCH address balance:\n${error.stack}`);
+      }
+
+      if (bchAmount !== undefined) {
+        try {
+          const rate = (await fetchCoinmarketcap('bitcoin-cash')).price_usd;
+          usdAmount = (bchAmount * rate).toFixed(2); // TODO: Remove magic number
+        } catch (error) {
+          console.error(`Failed to fetch USD rate:\n${error.stack}`);
+        }
+      }
+
+      const amountOrQuestion = _ => _ === undefined ? '?' : _;
+
       const explorerUrl = `https://explorer.bitcoin.com/bch/address/${address}`;
 
-      await channel.send(`<@${member.user.id}> has won the random raffle! I've PM'd you instructions.\n\nHere's what they won: ${explorerUrl}\n\nFor the rest of you, stay logged in the chat and you could be next!`);
+      await channel.send(`<@${member.user.id}> has won the random raffle! I've PM'd you instructions.\nThey won: ${amountOrQuestion(bchAmount)} BCH (${amountOrQuestion(usdAmount)} USD)\n${explorerUrl}\n\nFor the rest of you, stay logged in the chat and you could be next!`);
 
       await member.send(`You have won the random raffle! Scan this QR code in your Bitcoin.com wallet to sweep the Bitcoin Cash:`);
 
