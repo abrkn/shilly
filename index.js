@@ -121,7 +121,7 @@ const fetchDifficultyAdjustmentEstimate = () => new Promise((resolve, reject) =>
 
       const explorerUrl = `https://explorer.bitcoin.com/bch/address/${address}`;
 
-      await channel.send(`@${member.user.username} has won the random raffle! I've PM'd you instructions.\n\nHere's what they won: ${explorerUrl}\n\nFor the rest of you, stay logged in the chat and you could be next!`);
+      await channel.send(`<@${member.user.id}> has won the random raffle! I've PM'd you instructions.\n\nHere's what they won: ${explorerUrl}\n\nFor the rest of you, stay logged in the chat and you could be next!`);
 
       await member.send(`You have won the random raffle! Scan this QR code in your Bitcoin.com wallet to sweep the Bitcoin Cash:`);
 
