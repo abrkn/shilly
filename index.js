@@ -172,7 +172,13 @@ const fetchDifficultyAdjustmentEstimate = () => new Promise((resolve, reject) =>
     }
 
     if (message.content === '!help') {
-      message.channel.send('!help !about !price !mempool !cap !da');
+      message.channel.send(
+        ['!help - This help',
+          '!about - About Shilly',
+          '!price - Coinmarketcap rates',
+          '!mempool - Unconfirmed transaction stats',
+          '!cap - Cash/core market cap comparison',
+          '!da - Core difficult countdown'].join('\n'));
     }
 
     if (message.content === '!about') {
