@@ -171,7 +171,7 @@ const fetchDifficultyAdjustmentEstimate = () => new Promise((resolve, reject) =>
     }
 
     if (message.content === '!help') {
-      message.channel.send('!help !about !price !mempool !flip !cashening');
+      message.channel.send('!help !about !price !mempool !flip !da');
     }
 
     if (message.content === '!about') {
@@ -191,9 +191,9 @@ const fetchDifficultyAdjustmentEstimate = () => new Promise((resolve, reject) =>
       say(text);
     }
 
-    if (message.content === '!cashening') {
+    if (message.content === '!da') {
       const text = await fetchDifficultyAdjustmentEstimate();
-      say(`The Cashening will occur ${text}`);
+      say(`Bitcoin Core will adjust difficulty ${text}`);
     }
 
     if (message.content === '!flip') {
