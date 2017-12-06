@@ -88,7 +88,8 @@ const fetchDifficultyAdjustmentEstimate = () => new Promise((resolve, reject) =>
     const { body } = await superagent('https://api.coinmarketcap.com/v1/ticker/?limit=10');
     const item = await fetchCoinmarketcap(coin);
     const vol24h = numeral(item['24h_volume_usd']).format('0.0a');
-    const text = `Price: $${item.price_usd} / ${item.price_btc} BTC; Volume 24h: $${vol24h}; Change 24h: ${item.percent_change_24h}%`;
+    const priceAsBtcText = coin === 'bitcoin' ? '' : ` / ${item.price_btc} BTC`;
+    const text = `Price: $${item.price_usd}${priceAsBtcText}; Volume 24h: $${vol24h}; Change 24h: ${item.percent_change_24h}%`;
     return text;
   };
 
@@ -166,7 +167,7 @@ const fetchDifficultyAdjustmentEstimate = () => new Promise((resolve, reject) =>
         getPriceMessage('bitcoin'),
       ]);
 
-      await say(`**Bitcoin Cash** ${cash}`);
+      await say(`__Bitcoin Cash__ ${cash}`);
       await say(`Bitcoin Core ${core}`);
     }
 
