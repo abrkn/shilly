@@ -172,7 +172,7 @@ const fetchDifficultyAdjustmentEstimate = () => new Promise((resolve, reject) =>
     }
 
     if (message.content === '!help') {
-      message.channel.send('!help !about !price !mempool !flip !da');
+      message.channel.send('!help !about !price !mempool !cap !da');
     }
 
     if (message.content === '!about') {
@@ -197,14 +197,13 @@ const fetchDifficultyAdjustmentEstimate = () => new Promise((resolve, reject) =>
       say(`Bitcoin Core will adjust difficulty ${text}`);
     }
 
-    if (message.content === '!flip') {
+    if (message.content === '!cap') {
       const [cash, core] = await Promise.all([
         fetchCoinmarketcap('bitcoin-cash'),
         fetchCoinmarketcap('bitcoin'),
       ]);
 
-      const ratio = cash.market_cap_usd / core.market_cap_usd;
-      const chart = await createFlipChart(ratio);
+      const chart = await createFlipChart(cash.market_cap_usd, core.market_cap_usd);
 
       await message.channel.sendFile(chart, `the-cashening-${+new Date()}.png`);
     }

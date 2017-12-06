@@ -1,15 +1,21 @@
 const ChartjsNode = require('chartjs-node');
+const numeral = require('numeral');
 const { formatNumber: n } = require('./utils');
 
 const CORE_ORANGE = 'rgba(237,163,77, 0.7)';
 const CASH_GREEN = 'rgb(113, 197, 89)';
 
-const createFlipChart = async (ratio, { width = 300, height = 350 } = {}) => {
+const createFlipChart = async (cashMarketCapUsd, coreMarketCapUsd, { width = 300, height = 350 } = {}) => {
+  const ratio = cashMarketCapUsd / coreMarketCapUsd;
+
   const cashRatioText = n(ratio, '0.00%');
   const coreRatioText = n(1 - ratio, '0.00%');
 
+  const cashCapText = numeral(cashMarketCapUsd).format('$0.0 a');
+  const coreCapText = numeral(coreMarketCapUsd).format('$0.0 a');
+
   const data = {
-    labels: [`Bitcoin Cash (${cashRatioText})`, `Bitcoin Core (${coreRatioText})`],
+    labels: [`Bitcoin Cash ${cashCapText} (${cashRatioText})`, `Bitcoin Core ${coreCapText} (${coreRatioText})`],
     datasets: [
       {
         label: 'Market Cap (USD)',
