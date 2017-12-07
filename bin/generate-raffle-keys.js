@@ -11,7 +11,7 @@ const { rnorm } = require('randgen');
 const ESTIMATED_BCH_PRICE = 1500;
 
 const getRaffleBchAmount = () =>
-  (Math.abs(rnorm(10, 10)) / ESTIMATED_BCH_PRICE).toFixed(8);
+  (Math.abs(rnorm(5, 5)) / ESTIMATED_BCH_PRICE).toFixed(8);
 
 (async () => {
   const stdin = await getStdin();
