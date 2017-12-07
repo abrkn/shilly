@@ -226,6 +226,7 @@ const fetchDifficultyAdjustmentEstimate = () =>
             '!mempool - Unconfirmed transaction stats',
             '!cap - Cash/core market cap comparison',
             '!da - Core difficult countdown',
+            '!shop - BitcoinCash.baby Shop',
           ].join('\n')
         );
       }
@@ -235,6 +236,12 @@ const fetchDifficultyAdjustmentEstimate = () =>
 
         message.channel.send(
           `${name} v${version}. See https://github.com/abrkn/shilly`
+        );
+      }
+
+      if (message.content === '!shop') {
+        message.channel.send(
+          'Need a t-shirt to show your love for Bitcoin Cash? Go to http://shop.bitcoincash.baby'
         );
       }
 
