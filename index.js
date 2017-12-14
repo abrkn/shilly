@@ -222,10 +222,10 @@ const fetchDifficultyAdjustmentEstimate = () =>
           [
             '!help - This help',
             '!about - About Shilly',
-            '!price - Coinmarketcap rates',
-            '!mempool - Unconfirmed transaction stats',
-            '!cap - Cash/core market cap comparison',
-            '!da - Core difficult countdown',
+            '!price - Current prices of Bitcoin Cash and Bitcoin core (from https://coinmarketcap.com )',
+            '!mempool - Unconfirmed transaction stats (from https://blockchair.com )',
+            '!cap - Cash/core market cap comparison (from https://coinmarketcap.com )',
+            '!da - Core difficult countdown (from https://bitcoinwisdom.com/bitcoin/difficulty )',
             '!shop - BitcoinCash.baby Shop',
           ].join('\n')
         );
