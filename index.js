@@ -4,7 +4,7 @@ const delay = require('delay');
 const superagent = require('superagent');
 const numeral = require('numeral');
 const Xray = require('x-ray');
-const { shuffle } = require('lodash');
+const { shuffle, isNumber } = require('lodash');
 const createFlipChart = require('./createFlipChart');
 const { formatNumber: n } = require('./utils');
 const bluebird = require('bluebird');
@@ -31,6 +31,11 @@ const redisClient = redis.createClient(REDIS_URL);
 
 const printError = (...args) => console.error(...args);
 
+const swallowError = e => {
+  printError(e.stack);
+  return 'Error';
+};
+
 function randomIntFromInterval(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
@@ -38,7 +43,8 @@ function randomIntFromInterval(min, max) {
 const fetchMempool = async coin => {
   const { text } = await superagent(
     `https://api.blockchair.com/${coin}/mempool?u=${+new Date()}`
-  );
+  ).retry();
+
   const body = JSON.parse(text);
   const [mempool] = body.data.filter(_ => _.e === 'mempool_transactions');
   return +mempool.c;
@@ -249,16 +255,17 @@ const fetchDifficultyAdjustmentEstimate = () =>
 
       if (message.content === '!mempool') {
         const [cash, core] = await Promise.all([
-          fetchMempool('bitcoin-cash'),
-          fetchMempool('bitcoin'),
+          fetchMempool('bitcoin-cash').catch(e => swallowError(e)),
+          fetchMempool('bitcoin').catch(e => swallowError(e)),
         ]);
 
-        const text = `**Unconfirmed Transactions**:\nBitcoin Cash: ${n(
-          cash,
-          '0,0'
-        )}\nBitcoin Core: ${n(core, '0,0')}`;
+        const lines = [
+          '**Unconfirmed Transactions**:',
+          `Bitcoin Cash: ${isNaN(+cash) ? cash : n(cash, '0,0')}`,
+          `Bitcoin Core: ${isNaN(+core) ? core : n(core, '0,0')}`,
+        ];
 
-        say(text);
+        say(lines.join('\n'));
       }
 
       if (message.content === '!da') {
