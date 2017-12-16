@@ -22,10 +22,12 @@ const {
   DISCORD_WELCOME_MESSAGE,
   REDIS_URL = 'redis://localhost',
   RAFFLE_INTERVAL = 24 * 60 * 60e3,
+  DISCORD_YOURS_ORG_CHANNEL_ID,
 } = process.env;
 
 assert(DISCORD_TOKEN, 'DISCORD_TOKEN');
 assert(DISCORD_CHANNEL_ID, 'DISCORD_CHANNEL_ID');
+assert(DISCORD_YOURS_ORG_CHANNEL_ID, 'DISCORD_YOURS_ORG_CHANNEL_ID');
 assert(REDIS_URL, 'REDIS_URL');
 
 const redisClient = redis.createClient(REDIS_URL);
@@ -97,6 +99,9 @@ const fetchDifficultyAdjustmentEstimate = () =>
 
   const channel = client.channels.get(DISCORD_CHANNEL_ID);
   assert(channel, `Channel ${DISCORD_CHANNEL_ID} not found`);
+
+  const yoursChannel = client.channels.get(DISCORD_YOURS_ORG_CHANNEL_ID);
+  assert(yoursChannel, `Channel ${DISCORD_YOURS_ORG_CHANNEL_ID} not found`);
 
   const fetchCoinmarketcap = async coin => {
     const { body } = await superagent(
@@ -297,6 +302,6 @@ const fetchDifficultyAdjustmentEstimate = () =>
 
   await Promise.all([
     raffle(),
-    monitorYours({ redisClient, say: _ => channel.send(_) }),
+    monitorYours({ redisClient, say: _ => yoursChannel.send(_) }),
   ]);
 })().then(_ => _);
