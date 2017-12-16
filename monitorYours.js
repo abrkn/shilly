@@ -1,7 +1,7 @@
 const Discord = require('discord.js');
 const delay = require('delay');
 const superagent = require('superagent');
-const { defaultTo, last } = require('lodash');
+const { last } = require('lodash');
 
 const { RichEmbed } = Discord;
 
@@ -12,9 +12,7 @@ const redisKey = _ => `shilly.monitorYours.${_}`;
 
 const monitorYours = async ({ say, redisClient }) => {
   const tick = async () => {
-    const head = new Date(
-      defaultTo(await redisClient.getAsync(redisKey('head')), new Date())
-    );
+    const head = new Date(await redisClient.getAsync(redisKey('head')));
 
     const { body: posts } = await superagent
       .get(`${BASE_URL}api/contents/home/crypto/new/1`)
@@ -39,6 +37,12 @@ const monitorYours = async ({ say, redisClient }) => {
       await redisClient.setAsync(redisKey('head'), last(newPosts).createdAt);
     }
   };
+
+  const hasHead = await redisClient.existsAsync(redisKey('head'));
+
+  if (!hasHead) {
+    await redisClient.setAsync(redisKey('head'), new Date().toISOString());
+  }
 
   while (true) {
     await tick();
