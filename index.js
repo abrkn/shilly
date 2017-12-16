@@ -113,9 +113,11 @@ const fetchDifficultyAdjustmentEstimate = () =>
     const item = await fetchCoinmarketcap(coin);
     const vol24h = numeral(item['24h_volume_usd']).format('0.0a');
     const priceAsBtcText = coin === 'bitcoin' ? '' : ` / ${item.price_btc} BTC`;
-    const text = `Price: $${item.price_usd}${priceAsBtcText}; Volume 24h: $${
-      vol24h
-    }; Change 24h: ${item.percent_change_24h}%`;
+    const text = `Price: $${
+      item.price_usd
+    }${priceAsBtcText}; Volume 24h: $${vol24h}; Change 24h: ${
+      item.percent_change_24h
+    }%`;
     return text;
   };
 
@@ -194,9 +196,9 @@ const fetchDifficultyAdjustmentEstimate = () =>
           member.user.id
         }> has won the random raffle! I've PM'd you instructions.\nThey won: ${amountOrQuestion(
           bchAmount
-        )} BCH (${amountOrQuestion(usdAmount)} USD)\n${
-          explorerUrl
-        }\n\nFor the rest of you, stay logged in the chat and you could be next!`
+        )} BCH (${amountOrQuestion(
+          usdAmount
+        )} USD)\n${explorerUrl}\n\nFor the rest of you, stay logged in the chat and you could be next!`
       );
 
       await member.send(
