@@ -15,7 +15,7 @@ const monitorYours = async ({ say, redisClient }) => {
     const head = new Date(await redisClient.getAsync(redisKey('head')));
 
     const { body: posts } = await superagent
-      .get(`${BASE_URL}api/contents/home/crypto/new/1`)
+      .get(`${BASE_URL}api/contents/home/crypto/new/0`)
       .retry();
 
     const newPosts = posts.filter(_ => new Date(_.createdAt) > head).reverse();
