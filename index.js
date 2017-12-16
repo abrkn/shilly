@@ -82,6 +82,12 @@ const fetchDifficultyAdjustmentEstimate = () =>
     });
   });
 
+const fetchTotalTetherTokens = () =>
+  superagent
+    .get('http://omniexplorer.info/ask.aspx?api=getpropertytotaltokens&prop=31')
+    .retry()
+    .then(_ => +_.text);
+
 (async () => {
   const client = new Discord.Client();
   client.login(DISCORD_TOKEN);
@@ -242,6 +248,7 @@ const fetchDifficultyAdjustmentEstimate = () =>
             '!mempool - Unconfirmed transaction stats (from https://blockchair.com )',
             '!cap - Cash/core market cap comparison (from https://coinmarketcap.com )',
             '!da - Core difficult countdown (from https://bitcoinwisdom.com/bitcoin/difficulty )',
+            '!tether - Amount of Tether USD issued (from https://omniexplorer.info/lookupsp.aspx?sp=31 )',
             '!shop - BitcoinCash.baby Shop',
           ].join('\n')
         );
@@ -296,6 +303,13 @@ const fetchDifficultyAdjustmentEstimate = () =>
           chart,
           `the-cashening-${+new Date()}.png`
         );
+      }
+
+      if (message.content === '!tether') {
+        const total = await fetchTotalTetherTokens();
+        const human = numeral(total).format('$0.00 a');
+        const long = numeral(total).format('$0,0');
+        say(`Bitfinex has issued ${long} (${human}) in Tether USD`);
       }
     })().catch(printError)
   );
