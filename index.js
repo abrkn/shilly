@@ -132,6 +132,8 @@ const fetchDifficultyAdjustmentEstimate = () =>
         continue;
       }
 
+      await redisClient.lpushAsync('shilly.raffle.keyPairs.used', keyPair);
+
       const [address, key] = keyPair.split(/,/);
       assert(address && key);
 
