@@ -10,6 +10,7 @@ const { formatNumber: n } = require('./utils');
 const bluebird = require('bluebird');
 const redis = require('redis');
 const createQrCode = require('./createQrCode');
+const monitorYours = require('./monitorYours');
 
 bluebird.promisifyAll(redis.RedisClient.prototype);
 bluebird.promisifyAll(redis.Multi.prototype);
@@ -294,5 +295,8 @@ const fetchDifficultyAdjustmentEstimate = () =>
     })().catch(printError)
   );
 
-  await Promise.all([raffle()]);
+  await Promise.all([
+    raffle(),
+    monitorYours({ redisClient, say: _ => channel.send(_) }),
+  ]);
 })().then(_ => _);
