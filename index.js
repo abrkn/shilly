@@ -11,6 +11,7 @@ const bluebird = require('bluebird');
 const redis = require('redis');
 const createQrCode = require('./createQrCode');
 const monitorYours = require('./monitorYours');
+const monitorTether = require('./monitorTether');
 
 bluebird.promisifyAll(redis.RedisClient.prototype);
 bluebird.promisifyAll(redis.Multi.prototype);
@@ -320,5 +321,6 @@ const fetchTotalTetherTokens = () =>
   await Promise.all([
     raffle(),
     monitorYours({ redisClient, say: _ => yoursChannel.send(_) }),
+    monitorTether({ redisClient, say: _ => channel.send(_) }),
   ]);
 })().then(_ => _);
