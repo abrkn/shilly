@@ -23,19 +23,17 @@ const monitorTether = async ({ say, redisClient }) => {
       .retry()
       .then(_ => JSON.parse(_.text).transactions);
 
+    const nextHead = txids[0];
+
     if (!prevHead) {
-      debug(`There is no head. Setting it to ${txids[0]}`);
-      await redisClient.setAsync(redisKey('head'), txids[0]);
+      debug(`There is no head. Setting it to ${nextHead}`);
+      await redisClient.setAsync(redisKey('head'), nextHead);
       return;
     }
-
-    let nextHead;
 
     const newGrants = [];
 
     for (const txid of txids) {
-      nextHead = txid;
-
       if (txid === prevHead) {
         break;
       }
@@ -61,7 +59,9 @@ const monitorTether = async ({ say, redisClient }) => {
     }
 
     // Set head to the most txid
-    await redisClient.setAsync(redisKey('head'), nextHead);
+    if (prevHead !== nextHead) {
+      await redisClient.setAsync(redisKey('head'), nextHead);
+    }
 
     for (const { txid, amount, timestamp } of newGrants) {
       const human = numeral(amount).format('$0.00a');
