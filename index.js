@@ -203,15 +203,18 @@ const fetchTotalTetherTokens = () =>
 
       const explorerUrl = `https://explorer.bitcoin.com/bch/address/${address}`;
 
-      await channel.send(
+      const lines = [
         `<@${
           member.user.id
-        }> has won the random raffle! I've PM'd you instructions.\nThey won: ${amountOrQuestion(
-          bchAmount
-        )} BCH (${amountOrQuestion(
+        }> has won the random raffle! I've PM'd you instructions.`,
+        `They won: ${amountOrQuestion(bchAmount)} BCH (${amountOrQuestion(
           usdAmount
-        )} USD)\n${explorerUrl}\n\nFor the rest of you, stay logged in the chat and you could be next!`
-      );
+        )} USD)`,
+        `${explorerUrl}`,
+        `For the rest of you, stay logged in the chat and you could be next!`,
+      ];
+
+      await channel.send(lines.join('\n'));
 
       await member.send(
         `You have won the random raffle! Scan this QR code in your Bitcoin.com wallet to sweep the Bitcoin Cash:`
