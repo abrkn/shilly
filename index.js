@@ -211,7 +211,7 @@ const fetchTotalTetherTokens = () =>
           usdAmount
         )} USD)`,
         `${explorerUrl}`,
-        `For the rest of you, stay logged in the chat and you could be next!`,
+        `For the rest of you, stay logged in the chat and you could be next or use the faucet at https://learnbitcoin.cash/fauce !`,
       ];
 
       await channel.send(lines.join('\n'));
