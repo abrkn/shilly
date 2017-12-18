@@ -251,7 +251,6 @@ const fetchTotalTetherTokens = () =>
             '!price - Current prices of Bitcoin Cash and Bitcoin core (from https://coinmarketcap.com )',
             '!mempool - Unconfirmed transaction stats (from https://blockchair.com )',
             '!cap - Cash/core market cap comparison (from https://coinmarketcap.com )',
-            '!da - Core difficult countdown (from https://bitcoinwisdom.com/bitcoin/difficulty )',
             '!tether - Amount of Tether USD issued (from https://omniexplorer.info/lookupsp.aspx?sp=31 )',
             '!shop - BitcoinCash.baby Shop',
           ].join('\n')
@@ -288,8 +287,9 @@ const fetchTotalTetherTokens = () =>
       }
 
       if (message.content === '!da') {
-        const text = await fetchDifficultyAdjustmentEstimate();
-        say(`Bitcoin Core will adjust difficulty ${text}`);
+        //const text = await fetchDifficultyAdjustmentEstimate();
+        //say(`Bitcoin Core will adjust difficulty ${text}`);
+        say(`Sorry, The !da command is unavailable until we find an accurate API`);
       }
 
       if (message.content === '!cap') {
