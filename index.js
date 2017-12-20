@@ -89,6 +89,16 @@ const fetchTotalTetherTokens = () =>
     .retry()
     .then(_ => +_.text);
 
+const fetchRecommendedCoreSats = async () => {
+  const { body } = await superagent(
+    'https://bitcoinfees.earn.com/fees'
+  );
+
+  const { bestIndex, fees, medianTxSize } = body;
+
+  return fees[bestIndex].maxFee * medianTxSize;
+};
+
 (async () => {
   const client = new Discord.Client();
   client.login(DISCORD_TOKEN);
@@ -252,6 +262,7 @@ const fetchTotalTetherTokens = () =>
             '!mempool - Unconfirmed transaction stats (from https://blockchair.com )',
             '!cap - Cash/core market cap comparison (from https://coinmarketcap.com )',
             '!tether - Amount of Tether USD issued (from https://omniexplorer.info/lookupsp.aspx?sp=31 )',
+            '!fees - Recommended fees (from https://bitcoinfees.earn.com/ )',
             '!shop - BitcoinCash.baby Shop',
           ].join('\n')
         );
@@ -314,6 +325,19 @@ const fetchTotalTetherTokens = () =>
         const human = numeral(total).format('$0.00 a');
         const long = numeral(total).format('$0,0');
         say(`Bitfinex has issued ${long} (${human}) in Tether USD`);
+      }
+
+      if (message.content === '!fees') {
+        const recommendedCoreSats = await fetchRecommendedCoreSats();
+        const btcRate = (await fetchCoinmarketcap('bitcoin')).price_usd;
+        console.log({ recommendedCoreSats, btcRate });
+        const recommended = recommendedCoreSats / 1e8 * btcRate;
+        const human = numeral(recommended).format('$0.00 a');
+        say([
+          `Recommended Bitcoin Core (BTC) fee: ${human}`,
+          `Recommended Bitcoin Cash (BCH) fee: $0.01`,
+          `See https://bitcoinfees.earn.com/`
+        ].join('\n'));
       }
     })().catch(printError)
   );
