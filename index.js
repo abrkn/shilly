@@ -138,9 +138,9 @@ const fetchRecommendedCoreSats = async () => {
     const priceAsBtcText = coin === 'bitcoin' ? '' : ` / ${item.price_btc} BTC`;
     const text = `Price: $${
       item.price_usd
-    }${priceAsBtcText}; Volume 24h: $${vol24h}; Change 24h: ${
+      }${priceAsBtcText}; Volume 24h: $${vol24h}; Change 24h: ${
       item.percent_change_24h
-    }%`;
+      }%`;
     return text;
   };
 
@@ -171,10 +171,10 @@ const fetchRecommendedCoreSats = async () => {
       const members = channel.members
         .array()
         .filter(
-          _ =>
-            !_.user.bot &&
-            channel.guild.presences.get(_.user.id) &&
-            channel.guild.presences.get(_.user.id).status == 'online'
+        _ =>
+          !_.user.bot &&
+          channel.guild.presences.get(_.user.id) &&
+          channel.guild.presences.get(_.user.id).status == 'online'
         );
 
       const [member] = shuffle(members);
@@ -182,7 +182,7 @@ const fetchRecommendedCoreSats = async () => {
 
       console.log(
         `Raffle drew ${member.user.username} from a list of ${
-          members.length
+        members.length
         } candidates`
       );
 
@@ -216,7 +216,7 @@ const fetchRecommendedCoreSats = async () => {
 
       const lines = [
         `<@${
-          member.user.id
+        member.user.id
         }> has won the random raffle! I've PM'd you instructions.`,
         `They won: ${amountOrQuestion(bchAmount)} BCH (${amountOrQuestion(
           usdAmount
