@@ -334,7 +334,6 @@ const fetchRecommendedCoreSats = async () => {
         say([
           `Recommended Bitcoin Core (BTC) fee: ${human}`,
           `Recommended Bitcoin Cash (BCH) fee: $0.01`,
-          `See https://bitcoinfees.earn.com/`
         ].join('\n'));
       }
     })().catch(printError)
