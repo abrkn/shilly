@@ -58,7 +58,6 @@ const fetchBchAddressBalance = async address => {
   const { body } = await superagent(
     `https://blockdozer.com/insight-api/addr/${address}/?noTxList=1`
   );
-  console.log(body);
   const { balance } = body;
   return balance;
 };
@@ -330,7 +329,6 @@ const fetchRecommendedCoreSats = async () => {
       if (message.content === '!fees') {
         const recommendedCoreSats = await fetchRecommendedCoreSats();
         const btcRate = (await fetchCoinmarketcap('bitcoin')).price_usd;
-        console.log({ recommendedCoreSats, btcRate });
         const recommended = recommendedCoreSats / 1e8 * btcRate;
         const human = numeral(recommended).format('$0.00 a');
         say([
