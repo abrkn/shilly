@@ -10,6 +10,8 @@ const Redlock = require('redlock');
 const BigNumber = require('bignumber.js');
 const { n } = require('./utils');
 
+const MIN_AMOUNT = 0.00001;
+
 const hasTooManyDecimalsForSats = (value, decimals) => !n(n(value).toFixed(8)).eq(n(value));
 const getUserAccount = id => `discord-${id}`;
 
@@ -86,6 +88,7 @@ const createTipping = ({ redisClient, say, bitcoindUrl }) => {
       assert(!hasTooManyDecimalsForSats(amountN), 'Too many decimals');
       assert(amountN.isFinite(), 'Not finite');
       assert(amountN.gt(0), 'Less than or equal to zero');
+      assert(amountN.gte(MIN_AMOUNT), `Amount less than minimum  of ${MIN_AMOUNT}`);
 
       const prevBalance = n(await fetchRpc('getbalance', [getUserAccount(fromUserId)]));
       const nextBalance = prevBalance.sub(amountN);

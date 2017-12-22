@@ -2,8 +2,6 @@ const numeral = require('numeral');
 const { n } = require('../utils');
 const { fetchCoinmarketcap } = require('../apis');
 
-const MIN_AMOUNT = 0.0001;
-
 module.exports = async ({ message, reply, params, tipping, isDm }) => {
   if (!isDm) {
     return;
