@@ -14,6 +14,7 @@ const MIN_AMOUNT = 0.00001;
 
 const hasTooManyDecimalsForSats = (value, decimals) => !n(n(value).toFixed(8)).eq(n(value));
 const getUserAccount = id => `discord-${id}`;
+const isValidUserIdFormat = _ => _.match(/^[0-9]+$/);
 
 const { RichEmbed } = Discord;
 
@@ -40,17 +41,18 @@ const createTipping = ({ redisClient, say, bitcoindUrl }) => {
   };
 
   tipping.getAddressForUser = async userId => {
-    assert.equal(typeof userId, 'string');
+    assert(isValidUserIdFormat(userId));
     return await fetchRpc('getaccountaddress', [getUserAccount(userId)]);
   };
 
   tipping.getBalanceForUser = async userId => {
-    assert.equal(typeof userId, 'string');
+    assert(isValidUserIdFormat(userId));
     return await fetchRpc('getbalance', [getUserAccount(userId)]);
   };
 
   tipping.transfer = async (fromUserId, toUserId, amount) => {
-    assert.equal(typeof fromUserId, 'string');
+    assert(isValidUserIdFormat(fromUserId));
+    assert(isValidUserIdFormat(toUserId), `${toUserId} is an invalid Discord user id`);
     assert.equal(typeof toUserId, 'string');
     assert.notEqual(fromUserId, toUserId, 'Cannot send to self');
 
@@ -67,7 +69,7 @@ const createTipping = ({ redisClient, say, bitcoindUrl }) => {
       const nextBalance = prevBalance.sub(amountN);
       assert(nextBalance.gte(0), 'Balance would become negative');
 
-      const moved = await fetchRpc('move', [`discord-${fromUserId}`, `discord-${toUserId}`, amountN.toFixed(8)]);
+      const moved = await fetchRpc('move', [getUserAccount(fromUserId), getUserAccount(toUserId), amountN.toFixed(8)]);
       assert.equal(moved, true, 'Could not move funds');
 
       return amountN.toFixed(8);
@@ -77,7 +79,7 @@ const createTipping = ({ redisClient, say, bitcoindUrl }) => {
   };
 
   tipping.withdraw = async (fromUserId, address, amount) => {
-    assert.equal(typeof fromUserId, 'string');
+    assert(isValidUserIdFormat(fromUserId));
     assert.equal(typeof address, 'string');
 
     const lock = await lockBitcoind();
@@ -94,7 +96,7 @@ const createTipping = ({ redisClient, say, bitcoindUrl }) => {
       const nextBalance = prevBalance.sub(amountN);
       assert(nextBalance.gte(0), 'Balance would become negative');
 
-      const txid = await fetchRpc('sendfrom', [`discord-${fromUserId}`, address, amountN.toFixed(8)]);
+      const txid = await fetchRpc('sendfrom', [getUserAccount(fromUserId), address, amountN.toFixed(8)]);
       assert(txid, 'Could not withdraw funds');
 
       return { amount: amountN.toFixed(8), txid, };

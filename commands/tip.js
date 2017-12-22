@@ -13,13 +13,13 @@ module.exports = async ({ message, reply, params, tipping, isDm }) => {
 
   const [toUserRaw, amountRaw] = params;
 
-  const toUserMatch = toUserRaw.match(/^\<\@[0-9]+\>$/);
+  const toUserMatch = toUserRaw.match(/^\<\@([0-9]+)\>$/);
 
   if (!toUserMatch) {
     return;
   }
 
-  const [toUserId] = toUserMatch;
+  const [, toUserId] = toUserMatch;
 
   const amountMatch = amountRaw.match(/^(\$?)([0-9\.]+)$/);
 
