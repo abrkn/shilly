@@ -156,7 +156,8 @@ const redisClient = redis.createClient(REDIS_URL);
 
   client.on('message', message =>
     (async () => {
-      if (message.member.bot) {
+      // Cheap fix to not react to own messages
+      if (message.author.bot) {
         return;
       }
 
