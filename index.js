@@ -259,7 +259,7 @@ const fetchRecommendedCoreSats = async () => {
       }
 
       if (message.content === '!help') {
-        message.reply(
+        await message.reply(
           [
             '!help - This help',
             '!about - About Shilly',
