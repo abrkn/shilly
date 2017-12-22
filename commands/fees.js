@@ -8,7 +8,7 @@ module.exports = async ({ say }) => {
   const human = numeral(recommended).format('$0.00 a');
 
   await say([
-    `Recommended Bitcoin Core (BTC) fee: ${human}`,
-    `Recommended Bitcoin Cash (BCH) fee: $0.01`,
+    `Recommended Bitcoin Core (BTC) fee: \`${human}\``,
+    `Recommended Bitcoin Cash (BCH) fee: \`$0.01\``,
   ].join('\n'));
 };

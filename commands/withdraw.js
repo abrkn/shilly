@@ -32,7 +32,7 @@ module.exports = async ({ message, reply, params, tipping, isDm }) => {
     const asUsd = numeral(n(actualAmount).mul(usdRate).toString()).format('0,0.000');
     const url = `https://explorer.bitcoin.com/bch/tx/${txid}`;
 
-    await reply(`You withdrew ${actualAmount} BCH ($${asUsd}) to ${address}! See ${url}`);
+    await reply(`You withdrew \`${actualAmount}\` BCH (\`$${asUsd}\`) to \`${address}\`! See ${url}`);
   } catch (e) {
     await reply(`something crashed: ${e.message}`);
     throw e;
