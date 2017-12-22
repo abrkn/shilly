@@ -8,8 +8,7 @@ const { last } = require('lodash');
 const debug = require('debug')('shilly:tipping');
 const Redlock = require('redlock');
 const BigNumber = require('bignumber.js');
-
-const n = (..._) => new BigNumber(..._);
+const { n } = require('./utils');
 
 const hasTooManyDecimalsForSats = (value, decimals) => !n(n(value).toFixed(8)).eq(n(value));
 const getUserAccount = id => `discord-${id}`;

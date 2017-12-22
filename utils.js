@@ -1,5 +1,6 @@
 const numeral = require('numeral');
 const qr = require('qr-image');
+const BigNumber = require('bignumber.js');
 
 exports.formatNumber = (value, format) => numeral(value).format(format);
 
@@ -19,3 +20,5 @@ exports.createQrCode = text =>
   new Promise((resolve, reject) => {
     resolve(qr.imageSync(text));
   });
+
+exports.n = (..._) => new BigNumber(..._);
