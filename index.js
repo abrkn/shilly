@@ -1,19 +1,18 @@
 const assert = require('assert');
+const superagent = require('superagent');
 const Discord = require('discord.js');
 const delay = require('delay');
-const superagent = require('superagent');
 const numeral = require('numeral');
 const Xray = require('x-ray');
 const { shuffle, isNumber } = require('lodash');
-const createFlipChart = require('./createFlipChart');
-const { formatNumber: n } = require('./utils');
+const { formatNumber: n, printError } = require('./utils');
 const bluebird = require('bluebird');
 const redis = require('redis');
 const { RichEmbed } = Discord;
-const createQrCode = require('./createQrCode');
 const monitorYours = require('./monitorYours');
 const monitorTether = require('./monitorTether');
 const createTipping = require('./tipping');
+const router = require('./router');
 
 bluebird.promisifyAll(redis.RedisClient.prototype);
 bluebird.promisifyAll(redis.Multi.prototype);
@@ -27,6 +26,7 @@ const {
   RAFFLE_INTERVAL = 24 * 60 * 60e3,
   DISCORD_YOURS_ORG_CHANNEL_ID,
   BITCOIND_URL,
+  COMMAND_PREFIX = '!',
 } = process.env;
 
 assert(DISCORD_TOKEN, 'DISCORD_TOKEN');
@@ -35,72 +35,6 @@ assert(DISCORD_YOURS_ORG_CHANNEL_ID, 'DISCORD_YOURS_ORG_CHANNEL_ID');
 assert(REDIS_URL, 'REDIS_URL');
 
 const redisClient = redis.createClient(REDIS_URL);
-
-const printError = (...args) => console.error(...args);
-const formatBch = _ => numeral(_).format('0,0.00000000 ') + ' BCH';
-
-const swallowError = e => {
-  printError(e.stack);
-  return 'Error';
-};
-
-function randomIntFromInterval(min, max) {
-  return Math.floor(Math.random() * (max - min + 1) + min);
-}
-
-const fetchMempool = async coin => {
-  const { text } = await superagent(
-    `https://api.blockchair.com/${coin}/mempool?u=${+new Date()}`
-  ).retry();
-
-  const body = JSON.parse(text);
-  const [mempool] = body.data.filter(_ => _.e === 'mempool_transactions');
-  return +mempool.c;
-};
-
-const fetchBchAddressBalance = async address => {
-  const { body } = await superagent(
-    `https://blockdozer.com/insight-api/addr/${address}/?noTxList=1`
-  );
-  const { balance } = body;
-  return balance;
-};
-
-const fetchDifficultyAdjustmentEstimate = () =>
-  new Promise((resolve, reject) => {
-    const x = Xray();
-
-    x(
-      'https://bitcoinwisdom.com/bitcoin/difficulty',
-      'table:nth-child(2) tr:nth-child(3) td:nth-child(2)'
-    )((err, res) => {
-      if (err) {
-        return reject(err);
-      }
-
-      const withoutEscapes = res.replace(/[\n\t]/g, '');
-      const withSpace = withoutEscapes.replace(/,/, ', ');
-      const lowerCase = withSpace.toLowerCase();
-
-      resolve(lowerCase);
-    });
-  });
-
-const fetchTotalTetherTokens = () =>
-  superagent
-    .get('http://omniexplorer.info/ask.aspx?api=getpropertytotaltokens&prop=31')
-    .retry()
-    .then(_ => +_.text);
-
-const fetchRecommendedCoreSats = async () => {
-  const { body } = await superagent(
-    'https://bitcoinfees.earn.com/fees'
-  );
-
-  const { bestIndex, fees, medianTxSize } = body;
-
-  return fees[bestIndex].maxFee * medianTxSize;
-};
 
 (async () => {
   const client = new Discord.Client();
@@ -124,30 +58,6 @@ const fetchRecommendedCoreSats = async () => {
 
   const yoursChannel = client.channels.get(DISCORD_YOURS_ORG_CHANNEL_ID);
   assert(yoursChannel, `Channel ${DISCORD_YOURS_ORG_CHANNEL_ID} not found`);
-
-  const fetchCoinmarketcap = async coin => {
-    const { body } = await superagent(
-      'https://api.coinmarketcap.com/v1/ticker/?limit=10'
-    );
-    const [item] = body.filter(_ => _.id === coin);
-    assert(item, `${coin} not found`);
-    return item;
-  };
-
-  const getPriceMessage = async coin => {
-    const { body } = await superagent(
-      'https://api.coinmarketcap.com/v1/ticker/?limit=10'
-    );
-    const item = await fetchCoinmarketcap(coin);
-    const vol24h = numeral(item['24h_volume_usd']).format('0.0a');
-    const priceAsBtcText = coin === 'bitcoin' ? '' : ` / ${item.price_btc} BTC`;
-    const text = `Price: $${
-      item.price_usd
-      }${priceAsBtcText}; Volume 24h: $${vol24h}; Change 24h: ${
-      item.percent_change_24h
-      }%`;
-    return text;
-  };
 
   const raffle = async () => {
     while (true) {
@@ -246,145 +156,33 @@ const fetchRecommendedCoreSats = async () => {
 
   client.on('message', message =>
     (async () => {
-      const say = (..._) => message.channel.send(_);
-
       console.log(message.content);
 
-      if (message.content === '!price') {
-        const [cash, core] = await Promise.all([
-          getPriceMessage('bitcoin-cash'),
-          getPriceMessage('bitcoin'),
-        ]);
+      const words = message.content.split(/ /g).filter(_ => _);
+      const [firstWord, ...otherWords] = words;
 
-        await say(`__Bitcoin Cash__ ${cash}`);
-        await say(`Bitcoin Core ${core}`);
+      if (!firstWord) {
+        return;
       }
 
-      if (message.content === '!help') {
-        await message.reply(
-          [
-            '!help - This help',
-            '!about - About Shilly',
-            '!price - Current prices of Bitcoin Cash and Bitcoin core (from https://coinmarketcap.com )',
-            '!mempool - Unconfirmed transaction stats (from https://blockchair.com )',
-            '!cap - Cash/core market cap comparison (from https://coinmarketcap.com )',
-            '!tether - Amount of Tether USD issued (from https://omniexplorer.info/lookupsp.aspx?sp=31 )',
-            '!fees - Recommended fees (from https://bitcoinfees.earn.com/ )',
-            '',
-            '--- Tipping (ALPHA. Loss of funds may occur) ---',
-            '!balance - See tipping balance (DM only)',
-            '!deposit - See tipping deposit address (DM only)',
-            '!tip <recipient> <amount of BCH> - Channel only. Amount MUST BE in BCH, not USD',
-            '',
-            '!shop - BitcoinCash.baby Shop',
-          ].join('\n')
-        );
+      const commandMatch = firstWord.toLowerCase().match(`^${COMMAND_PREFIX}([a-z0-9]+)$`);
+
+      if (!commandMatch) {
+        return;
       }
 
-      if (message.content === '!about') {
-        const { name, version } = require('./package.json');
+      const [, command] = commandMatch;
 
-        message.channel.send(
-          `${name} v${version}. See https://github.com/abrkn/shilly`
-        );
-      }
-
-      if (message.content === '!shop') {
-        message.channel.send(
-          'Need a t-shirt to show your love for Bitcoin Cash? Go to http://shop.bitcoincash.baby'
-        );
-      }
-
-      if (message.content === '!mempool') {
-        const [cash, core] = await Promise.all([
-          fetchMempool('bitcoin-cash').catch(e => swallowError(e)),
-          fetchMempool('bitcoin').catch(e => swallowError(e)),
-        ]);
-
-        const lines = [
-          '**Unconfirmed Transactions**:',
-          `Bitcoin Cash: ${isNaN(+cash) ? cash : n(cash, '0,0')}`,
-          `Bitcoin Core: ${isNaN(+core) ? core : n(core, '0,0')}`,
-        ];
-
-        say(lines.join('\n'));
-      }
-
-      if (message.content === '!da') {
-        //const text = await fetchDifficultyAdjustmentEstimate();
-        //say(`Bitcoin Core will adjust difficulty ${text}`);
-        say(`Sorry, The !da command is unavailable until we find an accurate API`);
-      }
-
-      if (message.content === '!cap') {
-        const [cash, core] = await Promise.all([
-          fetchCoinmarketcap('bitcoin-cash'),
-          fetchCoinmarketcap('bitcoin'),
-        ]);
-
-        const chart = await createFlipChart(
-          cash.market_cap_usd,
-          core.market_cap_usd
-        );
-
-        await message.channel.sendFile(
-          chart,
-          `the-cashening-${+new Date()}.png`
-        );
-      }
-
-      if (message.content === '!tether') {
-        const total = await fetchTotalTetherTokens();
-        const human = numeral(total).format('$0.00 a');
-        const long = numeral(total).format('$0,0');
-        say(`Bitfinex has issued ${long} (${human}) in Tether USD`);
-      }
-
-      if (message.content === '!fees') {
-        const recommendedCoreSats = await fetchRecommendedCoreSats();
-        const btcRate = (await fetchCoinmarketcap('bitcoin')).price_usd;
-        const recommended = recommendedCoreSats / 1e8 * btcRate;
-        const human = numeral(recommended).format('$0.00 a');
-        say([
-          `Recommended Bitcoin Core (BTC) fee: ${human}`,
-          `Recommended Bitcoin Cash (BCH) fee: $0.01`,
-        ].join('\n'));
-      }
-
-      const tipMatch = message.content.match(/^!tip ([^ ]+) ([0-9\.]+)/);
-
-      if (tipMatch) {
-        const [, toUserTag, theirAmount] = tipMatch.slice();
-        const toUserId = toUserTag.match(/^\<\@[0-9]+\>$/)[0];
-
-        try {
-          const actualAmount = await tipping.transfer(message.member.user.id, toUserId, theirAmount);
-
-          await message.reply(`you tipped ${actualAmount} BCH to ${toUserTag}!`);
-        } catch (e) {
-          await message.reply(`something crashed: ${e.message}`);
-        }
-      }
-
-      if (message.channel.type === 'dm') {
-        const recipient = message.channel.recipient;
-
-        if (message.content === '!deposit') {
-          const address = await tipping.getAddressForUser(recipient.id);
-          const qr = await createQrCode(`bitcoincash:${address}`);
-
-          await message.reply(`To deposit Bitcoin Cash (BCH), send to: \`\`\`${address}\`\`\``);
-
-          await message.reply({
-            file: qr,
-          });
-        }
-
-        if (message.content === '!balance') {
-          const balance = await tipping.getBalanceForUser(recipient.id);
-          await message.reply(`Balance: \`\`\`${formatBch(balance)}\`\`\``);
-        }
-      }
+      await router.handle({
+        command,
+        params: otherWords,
+        message,
+        reply: message.reply.bind(message),
+        say: message.channel.send.bind(message.channel),
+        tipping,
+        isDm: message.channel.type === 'dm',
+        recipient: message.channel.recipient,
+      });
     })().catch(printError)
   );
 
