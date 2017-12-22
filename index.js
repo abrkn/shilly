@@ -156,6 +156,10 @@ const redisClient = redis.createClient(REDIS_URL);
 
   client.on('message', message =>
     (async () => {
+      if (message.member.bot) {
+        return;
+      }
+
       console.log(message.content);
 
       const words = message.content.split(/ /g).filter(_ => _);
