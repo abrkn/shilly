@@ -74,6 +74,32 @@ const createTipping = ({ redisClient, say, bitcoindUrl }) => {
     }
   };
 
+  tipping.withdraw = async (fromUserId, address, amount) => {
+    assert.equal(typeof fromUserId, 'string');
+    assert.equal(typeof address, 'string');
+
+    const lock = await lockBitcoind();
+
+    try {
+      const amountN = n(amount);
+
+      assert(!hasTooManyDecimalsForSats(amountN), 'Too many decimals');
+      assert(amountN.isFinite(), 'Not finite');
+      assert(amountN.gt(0), 'Less than or equal to zero');
+
+      const prevBalance = n(await fetchRpc('getbalance', [getUserAccount(fromUserId)]));
+      const nextBalance = prevBalance.sub(amountN);
+      assert(nextBalance.gte(0), 'Balance would become negative');
+
+      const txid = await fetchRpc('sendfrom', [`discord-${fromUserId}`, address, amountN.toFixed(8)]);
+      assert(txid, 'Could not withdraw funds');
+
+      return { amount: amountN.toFixed(8), txid, };
+    } finally {
+      await lock.unlock();
+    }
+  };
+
   return tipping;
 };
 
