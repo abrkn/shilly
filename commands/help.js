@@ -12,7 +12,7 @@ module.exports = async ({ say }) => {
       '--- Tipping (ALPHA. Loss of funds may occur) ---',
       '!balance - See tipping balance (DM only)',
       '!deposit - See tipping deposit address (DM only)',
-      '!tip <recipient> <amount of BCH> - Channel only. Amount MUST BE in BCH, not USD',
+      '!tip <recipient> <amount of BCH> or !tip <recipient> $<amount of USD> - Channel only',
       '',
       '!shop - BitcoinCash.baby Shop',
     ].join('\n')
