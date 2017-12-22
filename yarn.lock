@@ -99,7 +99,7 @@ bcrypt-pbkdf@^1.0.0:
   dependencies:
     tweetnacl "^0.14.3"
 
-bluebird@3.5.1, bluebird@^3.4.6:
+bluebird@3.5.1, bluebird@^3.3.3, bluebird@^3.4.6:
   version "3.5.1"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.5.1.tgz#d9551f9de98f1fcda1e683d17ee91a0602ee2eb9"
 
@@ -970,6 +970,12 @@ redis@2.8.0:
     double-ended-queue "^2.1.0-0"
     redis-commands "^1.2.0"
     redis-parser "^2.6.0"
+
+redlock@3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/redlock/-/redlock-3.1.0.tgz#9044980202f1bb30550a6ef12ad67dd9bf0c11d4"
+  dependencies:
+    bluebird "^3.3.3"
 
 reduce-component@1.0.1:
   version "1.0.1"

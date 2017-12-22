@@ -9,9 +9,11 @@ const createFlipChart = require('./createFlipChart');
 const { formatNumber: n } = require('./utils');
 const bluebird = require('bluebird');
 const redis = require('redis');
+const { RichEmbed } = Discord;
 const createQrCode = require('./createQrCode');
 const monitorYours = require('./monitorYours');
 const monitorTether = require('./monitorTether');
+const createTipping = require('./tipping');
 
 bluebird.promisifyAll(redis.RedisClient.prototype);
 bluebird.promisifyAll(redis.Multi.prototype);
@@ -24,6 +26,7 @@ const {
   REDIS_URL = 'redis://localhost',
   RAFFLE_INTERVAL = 24 * 60 * 60e3,
   DISCORD_YOURS_ORG_CHANNEL_ID,
+  BITCOIND_URL,
 } = process.env;
 
 assert(DISCORD_TOKEN, 'DISCORD_TOKEN');
@@ -34,6 +37,7 @@ assert(REDIS_URL, 'REDIS_URL');
 const redisClient = redis.createClient(REDIS_URL);
 
 const printError = (...args) => console.error(...args);
+const formatBch = _ => numeral(_).format('0,0.00000000 ') + ' BCH';
 
 const swallowError = e => {
   printError(e.stack);
@@ -104,6 +108,8 @@ const fetchRecommendedCoreSats = async () => {
 
   // Wait for connect
   await new Promise(resolve => client.on('ready', resolve));
+
+  const tipping = createTipping({ redisClient, say: _ => channel.send(_), bitcoindUrl: BITCOIND_URL });
 
   client.on('guildMemberAdd', member => {
     if (!DISCORD_WELCOME_MESSAGE) {
@@ -253,7 +259,7 @@ const fetchRecommendedCoreSats = async () => {
       }
 
       if (message.content === '!help') {
-        message.channel.send(
+        message.reply(
           [
             '!help - This help',
             '!about - About Shilly',
@@ -262,6 +268,12 @@ const fetchRecommendedCoreSats = async () => {
             '!cap - Cash/core market cap comparison (from https://coinmarketcap.com )',
             '!tether - Amount of Tether USD issued (from https://omniexplorer.info/lookupsp.aspx?sp=31 )',
             '!fees - Recommended fees (from https://bitcoinfees.earn.com/ )',
+            '',
+            '--- Tipping (ALPHA. Loss of funds may occur) ---',
+            '!balance - See tipping balance (DM only)',
+            '!deposit - See tipping deposit address (DM only)',
+            '!tip <recipient> <amount of BCH> - Channel only. Amount MUST BE in BCH, not USD',
+            '',
             '!shop - BitcoinCash.baby Shop',
           ].join('\n')
         );
@@ -336,6 +348,41 @@ const fetchRecommendedCoreSats = async () => {
           `Recommended Bitcoin Cash (BCH) fee: $0.01`,
         ].join('\n'));
       }
+
+      const tipMatch = message.content.match(/^!tip ([^ ]+) ([0-9\.]+)/);
+
+      if (tipMatch) {
+        const [, toUserTag, theirAmount] = tipMatch.slice();
+        const toUserId = toUserTag.match(/^\<\@[0-9]+\>$/)[0];
+
+        try {
+          const actualAmount = await tipping.transfer(message.member.user.id, toUserId, theirAmount);
+
+          await message.reply(`you tipped ${actualAmount} BCH to ${toUserTag}!`);
+        } catch (e) {
+          await message.reply(`something crashed: ${e.message}`);
+        }
+      }
+
+      if (message.channel.type === 'dm') {
+        const recipient = message.channel.recipient;
+
+        if (message.content === '!deposit') {
+          const address = await tipping.getAddressForUser(recipient.id);
+          const qr = await createQrCode(`bitcoincash:${address}`);
+
+          await message.reply(`To deposit Bitcoin Cash (BCH), send to: \`\`\`${address}\`\`\``);
+
+          await message.reply({
+            file: qr,
+          });
+        }
+
+        if (message.content === '!balance') {
+          const balance = await tipping.getBalanceForUser(recipient.id);
+          await message.reply(`Balance: \`\`\`${formatBch(balance)}\`\`\``);
+        }
+      }
     })().catch(printError)
   );
 
@@ -343,5 +390,6 @@ const fetchRecommendedCoreSats = async () => {
     raffle(),
     monitorYours({ redisClient, say: _ => yoursChannel.send(_) }),
     monitorTether({ redisClient, say: _ => channel.send(_) }),
+    tipping(),
   ]);
 })().then(_ => _);
