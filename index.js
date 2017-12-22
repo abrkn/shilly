@@ -248,6 +248,8 @@ const fetchRecommendedCoreSats = async () => {
     (async () => {
       const say = (..._) => message.channel.send(_);
 
+      console.log(message.content);
+
       if (message.content === '!price') {
         const [cash, core] = await Promise.all([
           getPriceMessage('bitcoin-cash'),
