@@ -7,7 +7,15 @@ exports.formatNumber = (value, format) => numeral(value).format(format);
 const printError = (...args) => console.error(...args);
 exports.printError = printError;
 
-exports.formatBch = _ => numeral(_).format('0,0.00000000 ') + ' BCH';
+exports.formatBch = _ => '`' + numeral(_.toString()).format('0,0[.00000000]') + ' BCH`';
+
+exports.formatUsd = _ => {
+  if (+_ < 0.01) {
+    return '`< $0.01`';
+  }
+
+  return '`$' + numeral(_.toString()).format('0,0.00') + '`';
+}
 
 exports.swallowError = e => {
   printError(e.stack);

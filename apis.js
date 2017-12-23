@@ -1,7 +1,9 @@
 const assert = require('assert');
 const superagent = require('superagent');
+const pMemoize = require('p-memoize');
+const { n, formatBch, formatUsd } = require('./utils');
 
-exports.fetchCoinmarketcap = async coin => {
+const fetchCoinmarketcap = async coin => {
   const { body } = await superagent(
     'https://api.coinmarketcap.com/v1/ticker/?limit=10'
   );
@@ -9,6 +11,8 @@ exports.fetchCoinmarketcap = async coin => {
   assert(item, `${coin} not found`);
   return item;
 };
+
+const memFetchCoinmarketcap = pMemoize(fetchCoinmarketcap, { maxAge: 10e3 });
 
 exports.fetchMempool = async coin => {
   const { text } = await superagent(
@@ -63,3 +67,18 @@ exports.fetchRecommendedCoreSats = async () => {
 
   return fees[bestIndex].maxFee * medianTxSize;
 };
+
+const bchToUsd = async amount => {
+  const usdRate = (await memFetchCoinmarketcap('bitcoin-cash')).price_usd;
+  const asUsd = n(amount).mul(usdRate).toNumber();
+  return asUsd;
+};
+
+exports.formatBchWithUsd = async amount => {
+  const amountAsUsd = await bchToUsd(amount);
+
+  return `${formatBch(amount)} (${formatUsd(amountAsUsd)})`;
+};
+
+exports.fetchCoinmarketcap = fetchCoinmarketcap;
+exports.bchToUsd = bchToUsd;

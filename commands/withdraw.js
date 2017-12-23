@@ -1,6 +1,6 @@
 const numeral = require('numeral');
 const { n } = require('../utils');
-const { fetchCoinmarketcap } = require('../apis');
+const { fetchCoinmarketcap, formatBchWithUsd } = require('../apis');
 
 module.exports = async ({ message, reply, params, tipping, isDm }) => {
   if (!isDm) {
@@ -29,10 +29,10 @@ module.exports = async ({ message, reply, params, tipping, isDm }) => {
 
   try {
     const { amount: actualAmount, txid } = await tipping.withdraw(message.author.id, address, theirAmount);
-    const asUsd = numeral(n(actualAmount).mul(usdRate).toString()).format('0,0.000');
+    const amountText = await formatBchWithUsd(actualAmount);
     const url = `https://explorer.bitcoin.com/bch/tx/${txid}`;
 
-    await reply(`You withdrew \`${actualAmount}\` BCH (\`$${asUsd}\`) to \`${address}\`! See ${url}`);
+    await reply(`You withdrew ${amountText} to \`${address}\`! See ${url}`);
   } catch (e) {
     await reply(`something crashed: ${e.message}`);
     throw e;

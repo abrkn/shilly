@@ -14,6 +14,7 @@
     "get-stdin": "5.0.1",
     "lodash": "4.17.4",
     "numeral": "2.0.6",
+    "p-memoize": "1.0.0",
     "panik": "1.0.0",
     "qr-image": "3.2.0",
     "randgen": "0.1.0",

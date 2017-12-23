@@ -1,27 +1,23 @@
-const { fetchTotalTetherTokens, fetchCoinmarketcap } = require('../apis');
-const { formatBch, n } = require('../utils');
-const numeral = require('numeral');
+const { formatBchWithUsd } = require('../apis');
+const { formatBch, formatUsd, n } = require('../utils');
 
 module.exports = async ({ recipient, message, reply, params, tipping, isDm }) => {
   if (!isDm) {
+    await message.author.send('The balance command is only available in DM');
     return;
   }
 
-  const usdRate = (await fetchCoinmarketcap('bitcoin-cash')).price_usd;
-
   const confirmedBalance = await tipping.getBalanceForUser(recipient.id);
-
   const unconfirmedBalance = await tipping.getBalanceForUser(recipient.id, { minConf: 0 });
   const pendingDeposits = n(unconfirmedBalance).sub(confirmedBalance).toNumber();
-
-  const confirmedAsUsd = numeral(n(confirmedBalance).mul(usdRate).toString()).format('0,0.000');
+  const confirmedBalanceText = await formatBchWithUsd(confirmedBalance);
 
   let depositsText = '';
 
   if (pendingDeposits > 0) {
-    const pendingAsUsd = numeral(n(pendingDeposits).mul(usdRate).toString()).format('0,0.000');
-    depositsText = `. Pending deposits: \`${formatBch(pendingDeposits)}\` (\`$${pendingAsUsd}\`)`;
+    const pendingDepositsText = await formatBchWithUsd(pendingDeposits);
+    depositsText = `. Pending deposits: ${pendingDepositsText}`;
   }
 
-  await reply(`Balance: \`${formatBch(confirmedBalance)}\` (\`$${confirmedAsUsd}\`)${depositsText}`);
+  await reply(`Balance: ${confirmedBalanceText}${depositsText}`);
 };

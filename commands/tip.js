@@ -1,4 +1,4 @@
-const { fetchTotalTetherTokens, fetchCoinmarketcap } = require('../apis');
+const { fetchTotalTetherTokens, fetchCoinmarketcap, formatBchWithUsd } = require('../apis');
 const numeral = require('numeral');
 const { n, parseUserDiscordId } = require('../utils');
 
@@ -31,11 +31,12 @@ module.exports = async ({ message, reply, params, tipping, isDm }) => {
     bchAmount = theirAmount;
   }
 
+
   try {
     const actualAmount = await tipping.transfer(message.member.user.id, toUserId, bchAmount);
-    const asUsd = numeral(n(actualAmount).mul(usdRate).toString()).format('0,0.000');
+    const amountText = await formatBchWithUsd(actualAmount);
 
-    await reply(`you tipped ${actualAmount} BCH ($${asUsd}) to ${toUserRaw}!`);
+    await reply(`you tipped ${amountText} to ${toUserRaw}!`);
   } catch (e) {
     await reply(`something crashed: ${e.message}`);
     throw e;
