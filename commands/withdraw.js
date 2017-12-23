@@ -20,7 +20,7 @@ module.exports = async ({ message, reply, params, tipping, isDm }) => {
   const amountMatch = amountRaw.match(/^[0-9\.]+$/);
 
   if (!amountMatch) {
-    throw new Error('Invalid amount');
+    throw new Error(`Invalid amount: ${amountRaw}`);
   }
 
   const [theirAmount] = amountMatch;
