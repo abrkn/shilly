@@ -187,6 +187,7 @@ const redisClient = redis.createClient(REDIS_URL);
         tipping,
         isDm: message.channel.type === 'dm',
         recipient: message.channel.recipient,
+        client,
       });
     })().catch(printError)
   );
