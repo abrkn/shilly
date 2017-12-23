@@ -1,6 +1,6 @@
 {
   "name": "shilly",
-  "version": "1.0.29",
+  "version": "1.0.30",
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
