@@ -9,13 +9,12 @@ const { last } = require('lodash');
 const debug = require('debug')('shilly:tipping');
 const Redlock = require('redlock');
 const BigNumber = require('bignumber.js');
-const { n } = require('./utils');
+const { n, isValidDiscordUserIdFormat } = require('./utils');
 
 const MIN_AMOUNT = 0.00001;
 
 const hasTooManyDecimalsForSats = (value, decimals) => !n(n(value).toFixed(8)).eq(n(value));
 const getUserAccount = id => `discord-${id}`;
-const isValidUserIdFormat = _ => _.match(/^[0-9]+$/);
 
 const { RichEmbed } = Discord;
 
@@ -42,12 +41,12 @@ const createTipping = ({ redisClient, say, bitcoindUrl }) => {
   };
 
   tipping.getAddressForUser = async userId => {
-    assert(isValidUserIdFormat(userId));
+    assert(isValidDiscordUserIdFormat(userId));
     return await fetchRpc('getaccountaddress', [getUserAccount(userId)]);
   };
 
   tipping.getBalanceForUser = async (userId, { minConf } = {}) => {
-    assert(isValidUserIdFormat(userId));
+    assert(isValidDiscordUserIdFormat(userId));
 
     return await fetchRpc(
       'getbalance',
@@ -59,8 +58,8 @@ const createTipping = ({ redisClient, say, bitcoindUrl }) => {
   };
 
   tipping.transfer = async (fromUserId, toUserId, amount) => {
-    assert(isValidUserIdFormat(fromUserId));
-    assert(isValidUserIdFormat(toUserId), `${toUserId} is an invalid Discord user id`);
+    assert(isValidDiscordUserIdFormat(fromUserId));
+    assert(isValidDiscordUserIdFormat(toUserId), `${toUserId} is an invalid Discord user id`);
     assert.equal(typeof toUserId, 'string');
     assert.notEqual(fromUserId, toUserId, 'Cannot send to self');
 
@@ -87,8 +86,8 @@ const createTipping = ({ redisClient, say, bitcoindUrl }) => {
   };
 
   tipping.roll = async (selfUserId, playerUserId, amount) => {
-    assert(isValidUserIdFormat(selfUserId));
-    assert(isValidUserIdFormat(playerUserId), `${playerUserId} is an invalid Discord user id`);
+    assert(isValidDiscordUserIdFormat(selfUserId));
+    assert(isValidDiscordUserIdFormat(playerUserId), `${playerUserId} is an invalid Discord user id`);
     assert.notEqual(selfUserId, playerUserId, 'Cannot play against self');
 
     const lock = await lockBitcoind();
@@ -133,7 +132,7 @@ const createTipping = ({ redisClient, say, bitcoindUrl }) => {
   };
 
   tipping.withdraw = async (fromUserId, address, amount) => {
-    assert(isValidUserIdFormat(fromUserId));
+    assert(isValidDiscordUserIdFormat(fromUserId));
     assert.equal(typeof address, 'string');
 
     const lock = await lockBitcoind();

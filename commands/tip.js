@@ -1,6 +1,6 @@
 const { fetchTotalTetherTokens, fetchCoinmarketcap } = require('../apis');
 const numeral = require('numeral');
-const { n } = require('../utils');
+const { n, parseUserDiscordId } = require('../utils');
 
 module.exports = async ({ message, reply, params, tipping, isDm }) => {
   if (isDm) {
@@ -12,15 +12,7 @@ module.exports = async ({ message, reply, params, tipping, isDm }) => {
   }
 
   const [toUserRaw, amountRaw] = params;
-
-  const toUserMatch = toUserRaw.match(/^\<\@([0-9]+)\>$/);
-
-  if (!toUserMatch) {
-    return;
-  }
-
-  const [, toUserId] = toUserMatch;
-
+  const toUserId = parseUserDiscordId(toUserRaw);
   const amountMatch = amountRaw.match(/^(\$?)([0-9\.]+)$/);
 
   if (!amountMatch) {

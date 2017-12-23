@@ -22,3 +22,11 @@ exports.createQrCode = text =>
   });
 
 exports.n = (..._) => new BigNumber(..._);
+
+exports.isValidDiscordUserIdFormat = _ => _.match(/^[0-9]+$/);
+
+exports.parseUserDiscordId = _ => {
+  const match = _.match(/^<@!?([0-9]+)>$/);
+  if (!match) { return null; }
+  return match[1];
+};
