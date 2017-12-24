@@ -3,7 +3,7 @@ const { formatBch, formatUsd, n } = require('../utils');
 
 module.exports = async ({ recipient, message, reply, params, tipping, isDm }) => {
   if (!isDm) {
-    await message.author.send('The balance command is only available in DM');
+    await reply('This command is only available as a DM.');
     return;
   }
 

@@ -4,6 +4,7 @@ const numeral = require('numeral');
 
 module.exports = async ({ message, reply, params, tipping, isDm }) => {
   if (!isDm) {
+    await reply('This command is only available as a DM.');
     return;
   }
 
