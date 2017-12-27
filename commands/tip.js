@@ -12,7 +12,14 @@ module.exports = async ({ message, reply, params, tipping, isDm }) => {
   }
 
   const [toUserRaw, amountRaw] = params;
+
   const toUserId = parseUserDiscordId(toUserRaw);
+
+  if (toUserId === null) {
+    console.warn(`${toUserRaw} is not a valid user id`);
+    return;
+  }
+
   const amountMatch = amountRaw.match(/^(\$?)([0-9\.]+)$/);
 
   if (!amountMatch) {

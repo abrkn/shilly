@@ -31,9 +31,14 @@ exports.createQrCode = text =>
 
 exports.n = (..._) => new BigNumber(..._);
 
-exports.isValidDiscordUserIdFormat = _ => _.match(/^[0-9]+$/);
+const isValidDiscordUserIdFormat = _ => typeof _ === 'string' && _.match(/^[0-9]+$/);
+exports.isValidDiscordUserIdFormat = isValidDiscordUserIdFormat;
 
 exports.parseUserDiscordId = _ => {
+  if (!isValidDiscordUserIdFormat(_)) {
+    return null;
+  }
+
   const match = _.match(/^<@!?([0-9]+)>$/);
   if (!match) { return null; }
   return match[1];
