@@ -137,7 +137,7 @@ const redisClient = redis.createClient(REDIS_URL);
           usdAmount
         )} USD)`,
         `${explorerUrl}`,
-        `For the rest of you, stay logged in the chat and you could be next or use the faucet at https://learnbitcoin.cash/faucet`,
+        `For the rest of you, stay logged in the chat and you could be next!`,
       ];
 
       await channel.send(lines.join('\n'));
