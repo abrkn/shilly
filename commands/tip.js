@@ -1,6 +1,6 @@
 const { fetchTotalTetherTokens, fetchCoinmarketcap, formatBchWithUsd } = require('../apis');
 const numeral = require('numeral');
-const { n, parseUserDiscordId } = require('../utils');
+const { n, extractUserDiscordIdFromTag } = require('../utils');
 
 module.exports = async ({ message, reply, params, tipping, isDm }) => {
   if (isDm) {
@@ -13,7 +13,7 @@ module.exports = async ({ message, reply, params, tipping, isDm }) => {
 
   const [toUserRaw, amountRaw] = params;
 
-  const toUserId = parseUserDiscordId(toUserRaw);
+  const toUserId = extractUserDiscordIdFromTag(toUserRaw);
 
   if (toUserId === null) {
     console.warn(`${toUserRaw} is not a valid user id`);
