@@ -12,6 +12,7 @@ const { RichEmbed } = Discord;
 const monitorYours = require('./monitorYours');
 const monitorTether = require('./monitorTether');
 const createTipping = require('./tipping');
+const createRaffle = require('./raffle');
 const router = require('./router');
 
 bluebird.promisifyAll(redis.RedisClient.prototype);
@@ -58,103 +59,18 @@ const redisClient = redis.createClient(REDIS_URL);
   const channel = client.channels.get(DISCORD_CHANNEL_ID);
   assert(channel, `Channel ${DISCORD_CHANNEL_ID} not found`);
 
+  const raffle = createRaffle({
+    interval: +RAFFLE_INTERVAL,
+    redisClient,
+    fetchBitcoinRpc: tipping.fetchRpc,
+    say: _ => channel.send(_),
+    client,
+    tipping,
+    channel,
+  });
+
   const yoursChannel = client.channels.get(DISCORD_YOURS_ORG_CHANNEL_ID);
   assert(yoursChannel, `Channel ${DISCORD_YOURS_ORG_CHANNEL_ID} not found`);
-
-  const raffle = async () => {
-    while (true) {
-      const nextRaffle = +(
-        (await redisClient.getAsync('shilly.raffle.nextRaffle')) || 0
-      );
-
-      if (nextRaffle > +new Date()) {
-        await delay(10e3); // Makes updating manually easier
-        continue;
-      }
-
-      const keyPair = await redisClient.lpopAsync('shilly.raffle.keyPairs');
-
-      if (!keyPair) {
-        console.error('There are no more keys in shilly.raffle.keyPairs');
-        await delay(10e3); // Makes updating manually easier
-        continue;
-      }
-
-      await redisClient.lpushAsync('shilly.raffle.keyPairs.used', keyPair);
-
-      const [address, key] = keyPair.split(/,/);
-      assert(address && key);
-
-      const members = channel.members
-        .array()
-        .filter(
-        _ =>
-          !_.user.bot &&
-          channel.guild.presences.get(_.user.id) &&
-          channel.guild.presences.get(_.user.id).status == 'online'
-        );
-
-      const [member] = shuffle(members);
-      assert(member);
-
-      console.log(
-        `Raffle drew ${member.user.username} from a list of ${
-        members.length
-        } candidates`
-      );
-
-      // Schedule next raffle
-      await await redisClient.setAsync(
-        'shilly.raffle.nextRaffle',
-        randomIntFromInterval(+new Date(), +new Date() + +RAFFLE_INTERVAL)
-      );
-
-      let bchAmount;
-      let usdAmount;
-
-      try {
-        bchAmount = await fetchBchAddressBalance(address);
-      } catch (error) {
-        console.error(`Failed to fetch BCH address balance:\n${error.stack}`);
-      }
-
-      if (bchAmount !== undefined) {
-        try {
-          const rate = (await fetchCoinmarketcap('bitcoin-cash')).price_usd;
-          usdAmount = (bchAmount * rate).toFixed(2); // TODO: Remove magic number
-        } catch (error) {
-          console.error(`Failed to fetch USD rate:\n${error.stack}`);
-        }
-      }
-
-      const amountOrQuestion = _ => (_ === undefined ? '?' : _);
-
-      const explorerUrl = `https://explorer.bitcoin.com/bch/address/${address}`;
-
-      const lines = [
-        `<@${
-        member.user.id
-        }> has won the random raffle! I've PM'd you instructions.`,
-        `They won: ${amountOrQuestion(bchAmount)} BCH (${amountOrQuestion(
-          usdAmount
-        )} USD)`,
-        `${explorerUrl}`,
-        `For the rest of you, stay logged in the chat and you could be next!`,
-      ];
-
-      await channel.send(lines.join('\n'));
-
-      await member.send(
-        `You have won the random raffle! Scan this QR code in your Bitcoin.com wallet to sweep the Bitcoin Cash:`
-      );
-
-      const qr = await createQrCode(key);
-      await member.sendFile(
-        qr,
-        `bitcoin-cash-raffle-winner-${+new Date()}.png`
-      );
-    }
-  };
 
   client.on('message', message =>
     (async () => {
