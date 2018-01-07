@@ -1,4 +1,4 @@
-const { formatBchWithUsd } = require('../apis');
+const { formatBchWithUsd, formatConfirmedAndUnconfirmedBalances } = require('../apis');
 const { formatBch, formatUsd, n } = require('../utils');
 
 module.exports = async ({ recipient, message, reply, params, tipping, isDm }) => {
@@ -7,17 +7,9 @@ module.exports = async ({ recipient, message, reply, params, tipping, isDm }) =>
     return;
   }
 
-  const confirmedBalance = await tipping.getBalanceForUser(recipient.id);
-  const unconfirmedBalance = await tipping.getBalanceForUser(recipient.id, { minConf: 0 });
-  const pendingDeposits = n(unconfirmedBalance).sub(confirmedBalance).toNumber();
-  const confirmedBalanceText = await formatBchWithUsd(confirmedBalance);
+  const confirmed = await tipping.getBalanceForUser(recipient.id);
+  const unconfirmed = await tipping.getBalanceForUser(recipient.id, { minConf: 0 });
+  const asText = await formatConfirmedAndUnconfirmedBalances(confirmed, unconfirmed);
 
-  let depositsText = '';
-
-  if (pendingDeposits > 0) {
-    const pendingDepositsText = await formatBchWithUsd(pendingDeposits);
-    depositsText = `. Pending deposits: ${pendingDepositsText}`;
-  }
-
-  await reply(`Balance: ${confirmedBalanceText}${depositsText}`);
+  await reply(`Balance: ${asText}`);
 };
