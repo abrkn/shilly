@@ -12,3 +12,4 @@ exports.balance = require('./balance');
 exports.deposit = require('./deposit');
 exports.withdraw = require('./withdraw');
 exports.roll = require('./roll');
+exports.balanceReport = require('./balanceReport');

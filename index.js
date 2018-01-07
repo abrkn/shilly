@@ -27,12 +27,14 @@ const {
   DISCORD_YOURS_ORG_CHANNEL_ID,
   BITCOIND_URL,
   COMMAND_PREFIX = '!',
+  DISCORD_STAFF_ROLE_ID,
 } = process.env;
 
 assert(DISCORD_TOKEN, 'DISCORD_TOKEN');
 assert(DISCORD_CHANNEL_ID, 'DISCORD_CHANNEL_ID');
 assert(DISCORD_YOURS_ORG_CHANNEL_ID, 'DISCORD_YOURS_ORG_CHANNEL_ID');
 assert(REDIS_URL, 'REDIS_URL');
+assert(DISCORD_STAFF_ROLE_ID, 'DISCORD_STAFF_ROLE_ID');
 
 const redisClient = redis.createClient(REDIS_URL);
 
@@ -188,6 +190,8 @@ const redisClient = redis.createClient(REDIS_URL);
         isDm: message.channel.type === 'dm',
         recipient: message.channel.recipient,
         client,
+        guild: channel.guild,
+        authorIsStaff: !!channel.guild.members.get(message.author.id).roles.get(DISCORD_STAFF_ROLE_ID),
       });
     })().catch(printError)
   );

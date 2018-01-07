@@ -40,21 +40,27 @@ const createTipping = ({ redisClient, say, bitcoindUrl }) => {
   const tipping = async () => {
   };
 
+  tipping.fetchRpc = fetchRpc;
+
   tipping.getAddressForUser = async userId => {
     assert(isValidDiscordUserIdFormat(userId));
     return await fetchRpc('getaccountaddress', [getUserAccount(userId)]);
   };
 
-  tipping.getBalanceForUser = async (userId, { minConf } = {}) => {
-    assert(isValidDiscordUserIdFormat(userId));
-
+  tipping.getBalanceForAccount = async (accountId, { minConf } = {}) => {
     return await fetchRpc(
       'getbalance',
       [
-        getUserAccount(userId),
+        accountId,
         ...(minConf !== undefined ? [minConf] : []),
       ]
     );
+  };
+
+  tipping.getBalanceForUser = async (userId, { minConf } = {}) => {
+    assert(isValidDiscordUserIdFormat(userId));
+
+    return tipping.getBalanceForAccount(getUserAccount(userId), { minConf });
   };
 
   tipping.transfer = async (fromUserId, toUserId, amount) => {

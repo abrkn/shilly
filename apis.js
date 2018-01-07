@@ -74,11 +74,26 @@ const bchToUsd = async amount => {
   return asUsd;
 };
 
-exports.formatBchWithUsd = async amount => {
+const formatBchWithUsd = async amount => {
   const amountAsUsd = await bchToUsd(amount);
 
   return `${formatBch(amount)} (${formatUsd(amountAsUsd)})`;
 };
 
+exports.formatConfirmedAndUnconfirmedBalances = async (confirmed, withUnconfirmed) => {
+  const pending = n(withUnconfirmed).sub(confirmed).toNumber();
+  const confirmedText = await formatBchWithUsd(confirmed);
+
+  const parts = [confirmedText];
+
+  if (pending > 0) {
+    const formatted = await formatBchWithUsd(pending);
+    parts.push(`. Pending deposits: ${formatted}`);
+  }
+
+  return parts.join('');
+}
+
 exports.fetchCoinmarketcap = fetchCoinmarketcap;
 exports.bchToUsd = bchToUsd;
+exports.formatBchWithUsd = formatBchWithUsd;
