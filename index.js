@@ -43,8 +43,12 @@ const redisClient = redis.createClient(REDIS_URL);
   const client = new Discord.Client();
   client.login(DISCORD_TOKEN);
 
+  console.log('Waiting for Discord to connect...');
+
   // Wait for connect
   await new Promise(resolve => client.on('ready', resolve));
+
+  console.log('Discord connected');
 
   const tipping = createTipping({ redisClient, say: _ => channel.send(_), bitcoindUrl: BITCOIND_URL });
 
