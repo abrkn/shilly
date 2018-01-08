@@ -3,7 +3,7 @@ const { formatBch, formatUsd, n } = require('../utils');
 
 module.exports = async ({ recipient, message, reply, params, tipping, isDm }) => {
   if (!isDm) {
-    await reply('This command is only available as a DM.');
+    await reply('The `!balance` command is only available as a DM. Please try sending the command to me in a direct message.');
     return;
   }
 
