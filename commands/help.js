@@ -13,7 +13,7 @@ module.exports = async ({ say }) => {
       'DM Only',
       '`!balance` - See tipping balance',
       '`!deposit` - See tipping deposit address',
-      '`!withdraw <address> <amount of BCH>` - DM only',
+      '`!withdraw <address> <amount of BCH>`',
       'Channel only',
       '`!tip <recipient> <amount of BCH>`,
       'or',
