@@ -3,12 +3,13 @@ const delay = require('delay');
 const { rnorm } = require('randgen');
 const { shuffle } = require('lodash');
 const { randomIntFromInterval } = require('./utils');
-const { formatBchWithUsd } = require('./apis');
+const { formatBchWithUsd, bchToUsd } = require('./apis');
 
-const ESTIMATED_BCH_PRICE = 3000;
-
-const getRaffleBchAmount = () =>
-  +((Math.abs(rnorm(5, 5)) / ESTIMATED_BCH_PRICE).toFixed(8));
+const getRaffleBchAmount = async () => {
+  const rate = await bchToUsd(1);
+  const result = +((Math.abs(rnorm(5, 5)) / rate).toFixed(8));
+  return result;
+};
 
 const createRaffle = ({
   fetchBitcoinRpc,
@@ -30,7 +31,7 @@ const createRaffle = ({
     }
 
     const botBalance = await tipping.getBalanceForUser(client.user.id);
-    const bchAmount = getRaffleBchAmount();
+    const bchAmount = await getRaffleBchAmount();
 
     if (botBalance < bchAmount) {
       console.warn(`Cannot afford to raffle. Random amount: ${bchAmount}; Bot balance: ${botBalance}`);
