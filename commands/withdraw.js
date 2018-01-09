@@ -4,7 +4,7 @@ const { fetchCoinmarketcap, formatBchWithUsd } = require('../apis');
 
 module.exports = async ({ message, reply, params, tipping, isDm }) => {
   if (!isDm) {
-    await reply('This command is only available as a DM.');
+    await reply('The `!withdraw` command is only available as a DM. Please try sending the command to me in a direct message.');
     return;
   }
 
