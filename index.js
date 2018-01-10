@@ -14,6 +14,7 @@ const monitorTether = require('./monitorTether');
 const createTipping = require('./tipping');
 const createRaffle = require('./raffle');
 const router = require('./router');
+const createWelcome = require('./welcome');
 
 bluebird.promisifyAll(redis.RedisClient.prototype);
 bluebird.promisifyAll(redis.Multi.prototype);
@@ -22,7 +23,6 @@ const {
   DISCORD_TOKEN,
   PRICE_INTERVAL = 10 * 60e3,
   DISCORD_CHANNEL_ID,
-  DISCORD_WELCOME_MESSAGE,
   REDIS_URL = 'redis://localhost',
   RAFFLE_INTERVAL = 24 * 60 * 60e3,
   DISCORD_YOURS_ORG_CHANNEL_ID,
@@ -52,13 +52,7 @@ const redisClient = redis.createClient(REDIS_URL);
 
   const tipping = createTipping({ redisClient, say: _ => channel.send(_), bitcoindUrl: BITCOIND_URL });
 
-  client.on('guildMemberAdd', member => {
-    if (!DISCORD_WELCOME_MESSAGE) {
-      return;
-    }
-
-    member.send(DISCORD_WELCOME_MESSAGE);
-  });
+  const welcome = createWelcome({ client });
 
   const channel = client.channels.get(DISCORD_CHANNEL_ID);
   assert(channel, `Channel ${DISCORD_CHANNEL_ID} not found`);
@@ -121,5 +115,6 @@ const redisClient = redis.createClient(REDIS_URL);
     monitorYours({ redisClient, say: _ => yoursChannel.send(_) }),
     monitorTether({ redisClient, say: _ => channel.send(_) }),
     tipping(),
+    welcome(),
   ]);
 })().then(_ => _);
