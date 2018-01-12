@@ -9,7 +9,7 @@ const { last } = require('lodash');
 const debug = require('debug')('shilly:tipping');
 const Redlock = require('redlock');
 const BigNumber = require('bignumber.js');
-const { n, isValidDiscordUserIdFormat } = require('./utils');
+const { n, isValidDiscordUserIdFormat, bchAddressToInternal } = require('./utils');
 
 const MIN_AMOUNT = 0.00001;
 
@@ -155,7 +155,7 @@ const createTipping = ({ redisClient, say, bitcoindUrl }) => {
       const nextBalance = prevBalance.sub(amountN);
       assert(nextBalance.gte(0), 'Balance would become negative');
 
-      const txid = await fetchRpc('sendfrom', [getUserAccount(fromUserId), address, amountN.toFixed(8)]);
+      const txid = await fetchRpc('sendfrom', [getUserAccount(fromUserId), bchAddressToInternal(address), amountN.toFixed(8)]);
       assert(txid, 'Could not withdraw funds');
 
       return { amount: amountN.toFixed(8), txid, };

@@ -6,6 +6,7 @@
   "dependencies": {
     "ava": "0.24.0",
     "bignumber.js": "5.0.0",
+    "bitcoincashjs": "0.1.7",
     "bluebird": "3.5.1",
     "chart.js": "2.7.1",
     "chartjs-node": "1.6.0",

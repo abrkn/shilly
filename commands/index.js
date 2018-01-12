@@ -10,6 +10,7 @@ exports.fees = require('./fees');
 exports.tip = require('./tip');
 exports.balance = require('./balance');
 exports.deposit = require('./deposit');
+exports.depositlegacy = require('./depositlegacy');
 exports.withdraw = require('./withdraw');
 exports.roll = require('./roll');
 exports.balancereport = require('./balanceReport');

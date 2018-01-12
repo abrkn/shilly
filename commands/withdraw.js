@@ -14,10 +14,6 @@ module.exports = async ({ message, reply, params, tipping, isDm }) => {
 
   const [address, amountRaw] = params;
 
-  if (!address.match(/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/)) {
-    throw new Error('Invalid address');
-  }
-
   const amountMatch = amountRaw.match(/^[0-9\.]+$/);
 
   if (!amountMatch) {
