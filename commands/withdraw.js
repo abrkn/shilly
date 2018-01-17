@@ -1,6 +1,6 @@
 const numeral = require('numeral');
 const { n } = require('../utils');
-const { fetchCoinmarketcap, formatBchWithUsd } = require('../apis');
+const { formatBchWithUsd, parseBchOrUsdAmount } = require('../apis');
 
 module.exports = async ({ message, reply, params, tipping, isDm }) => {
   if (!isDm) {
@@ -14,18 +14,18 @@ module.exports = async ({ message, reply, params, tipping, isDm }) => {
 
   const [address, amountRaw] = params;
 
-  const amountMatch = amountRaw.match(/^[0-9\.]+$/);
+  const theirAmount = await parseBchOrUsdAmount(amountRaw);
 
-  if (!amountMatch) {
+  if (!theirAmount) {
     throw new Error(`Invalid amount: ${amountRaw}`);
   }
 
-  const [theirAmount] = amountMatch;
-
-  const usdRate = (await fetchCoinmarketcap('bitcoin-cash')).price_usd;
-
   try {
-    const { amount: actualAmount, txid } = await tipping.withdraw(message.author.id, address, theirAmount);
+    const { amount: actualAmount, txid } = await tipping.withdraw(
+      message.author.id,
+      address,
+      theirAmount
+    );
     const amountText = await formatBchWithUsd(actualAmount);
     const url = `https://explorer.bitcoin.com/bch/tx/${txid}`;
 

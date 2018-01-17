@@ -92,7 +92,25 @@ exports.formatConfirmedAndUnconfirmedBalances = async (confirmed, withUnconfirme
   }
 
   return parts.join('');
-}
+};
+
+exports.parseBchOrUsdAmount = async value => {
+  assert.equal(typeof value, 'string');
+
+  const match = value.match(/^(\$?)([0-9\.]+)$/);
+
+  if (!match) {
+    return null;
+  }
+
+  const [, symbol, amount] = match;
+
+  if (symbol === '$') {
+    return await usdToBch(amount);
+  }
+
+  return +(+amount).toFixed(8);
+};
 
 exports.fetchCoinmarketcap = fetchCoinmarketcap;
 exports.bchToUsd = bchToUsd;
