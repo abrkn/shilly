@@ -59,9 +59,7 @@ exports.fetchTotalTetherTokens = () =>
     .then(_ => +_.text);
 
 exports.fetchRecommendedCoreSats = async () => {
-  const { body } = await superagent(
-    'https://bitcoinfees.earn.com/fees'
-  );
+  const { body } = await superagent('https://bitcoinfees.earn.com/fees');
 
   const { bestIndex, fees, medianTxSize } = body;
 
@@ -70,8 +68,19 @@ exports.fetchRecommendedCoreSats = async () => {
 
 const bchToUsd = async amount => {
   const usdRate = (await memFetchCoinmarketcap('bitcoin-cash')).price_usd;
-  const asUsd = n(amount).mul(usdRate).toNumber();
+  const asUsd = n(amount)
+    .mul(usdRate)
+    .toNumber();
   return asUsd;
+};
+
+const usdToBch = async amount => {
+  const usdRate = (await memFetchCoinmarketcap('bitcoin-cash')).price_usd;
+
+  return n(amount)
+    .div(usdRate)
+    .round(8)
+    .toNumber();
 };
 
 const formatBchWithUsd = async amount => {
@@ -80,8 +89,13 @@ const formatBchWithUsd = async amount => {
   return `${formatBch(amount)} (${formatUsd(amountAsUsd)})`;
 };
 
-exports.formatConfirmedAndUnconfirmedBalances = async (confirmed, withUnconfirmed) => {
-  const pending = n(withUnconfirmed).sub(confirmed).toNumber();
+exports.formatConfirmedAndUnconfirmedBalances = async (
+  confirmed,
+  withUnconfirmed
+) => {
+  const pending = n(withUnconfirmed)
+    .sub(confirmed)
+    .toNumber();
   const confirmedText = await formatBchWithUsd(confirmed);
 
   const parts = [confirmedText];

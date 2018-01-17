@@ -4,7 +4,9 @@ const { formatBchWithUsd, parseBchOrUsdAmount } = require('../apis');
 
 module.exports = async ({ message, reply, params, tipping, isDm }) => {
   if (!isDm) {
-    await reply('The `!withdraw` command is only available as a DM. Please try sending the command to me in a direct message.');
+    await reply(
+      'The `!withdraw` command is only available as a DM. Please try sending the command to me in a direct message.'
+    );
     return;
   }
 
