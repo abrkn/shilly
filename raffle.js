@@ -7,7 +7,7 @@ const { formatBchWithUsd, bchToUsd } = require('./apis');
 
 const getRaffleBchAmount = async () => {
   const rate = await bchToUsd(1);
-  const result = +((Math.abs(rnorm(5, 5)) / rate).toFixed(8));
+  const result = +(Math.abs(rnorm(5, 5)) / rate).toFixed(8);
   return result;
 };
 
@@ -34,17 +34,19 @@ const createRaffle = ({
     const bchAmount = await getRaffleBchAmount();
 
     if (botBalance < bchAmount) {
-      console.warn(`Cannot afford to raffle. Random amount: ${bchAmount}; Bot balance: ${botBalance}`);
+      console.warn(
+        `Cannot afford to raffle. Random amount: ${bchAmount}; Bot balance: ${botBalance}`
+      );
       return;
     }
 
     const members = channel.members
       .array()
       .filter(
-      _ =>
-        !_.user.bot &&
-        channel.guild.presences.get(_.user.id) &&
-        channel.guild.presences.get(_.user.id).status == 'online'
+        _ =>
+          !_.user.bot &&
+          channel.guild.presences.get(_.user.id) &&
+          channel.guild.presences.get(_.user.id).status == 'online'
       );
 
     const [member] = shuffle(members);
@@ -52,7 +54,7 @@ const createRaffle = ({
 
     console.log(
       `Raffle drew ${member.user.username} from a list of ${
-      members.length
+        members.length
       } candidates`
     );
 
@@ -62,12 +64,16 @@ const createRaffle = ({
       randomIntFromInterval(+new Date(), +new Date() + interval)
     );
 
-    const actualBchAmount = await tipping.transfer(client.user.id, member.user.id, bchAmount);
+    const actualBchAmount = await tipping.transfer(
+      client.user.id,
+      member.user.id,
+      bchAmount
+    );
     const amountText = await formatBchWithUsd(actualBchAmount);
 
     const lines = [
       `<@${
-      member.user.id
+        member.user.id
       }> has won the random raffle! I've DM'd you instructions.`,
       `They won: ${amountText}`,
       `For the rest of you, stay logged into the chat and you could be next!`,
@@ -75,10 +81,12 @@ const createRaffle = ({
 
     await channel.send(lines.join('\n'));
 
-    await member.send([
-      `You have won the random raffle of ${amountText}!`,
-      `DM me \`!balance\` or \`!help\` for more information`,
-    ].join('\n'));
+    await member.send(
+      [
+        `You have won the random raffle of ${amountText}!`,
+        `DM me \`!balance\` or \`!help\` for more information`,
+      ].join('\n')
+    );
 
     await delay(10e3); // Makes updating manually easier
   };
@@ -86,7 +94,7 @@ const createRaffle = ({
   const raffle = async () => {
     while (true) {
       await tick();
-    };
+    }
   };
 
   return raffle;

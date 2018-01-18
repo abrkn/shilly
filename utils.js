@@ -9,7 +9,8 @@ exports.formatNumber = (value, format) => numeral(value).format(format);
 const printError = (...args) => console.error(...args);
 exports.printError = printError;
 
-exports.formatBch = _ => '`' + numeral(_.toString()).format('0,0[.00000000]') + ' BCH`';
+exports.formatBch = _ =>
+  '`' + numeral(_.toString()).format('0,0[.00000000]') + ' BCH`';
 
 exports.formatUsd = _ => {
   if (+_ < 0.01) {
@@ -17,14 +18,15 @@ exports.formatUsd = _ => {
   }
 
   return '`$' + numeral(_.toString()).format('0,0.00') + '`';
-}
+};
 
 exports.swallowError = e => {
   printError(e.stack);
   return 'Error';
 };
 
-exports.randomIntFromInterval = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
+exports.randomIntFromInterval = (min, max) =>
+  Math.floor(Math.random() * (max - min + 1) + min);
 
 exports.createQrCode = text =>
   new Promise((resolve, reject) => {
@@ -33,12 +35,15 @@ exports.createQrCode = text =>
 
 exports.n = (..._) => new BigNumber(..._);
 
-const isValidDiscordUserIdFormat = _ => typeof _ === 'string' && _.match(/^[0-9]+$/);
+const isValidDiscordUserIdFormat = _ =>
+  typeof _ === 'string' && _.match(/^[0-9]+$/);
 exports.isValidDiscordUserIdFormat = isValidDiscordUserIdFormat;
 
 exports.extractUserDiscordIdFromTag = _ => {
   const match = _.match(/^<@!?([0-9]+)>$/);
-  if (!match) { return null; }
+  if (!match) {
+    return null;
+  }
   return match[1];
 };
 
@@ -67,6 +72,11 @@ exports.bchAddressToInternal = address => {
     return address;
   }
 
-  const bchAddress = bch.Address.fromString(address, 'livenet', 'pubkeyhash', bch.Address.CashAddrFormat);
+  const bchAddress = bch.Address.fromString(
+    address,
+    'livenet',
+    'pubkeyhash',
+    bch.Address.CashAddrFormat
+  );
   return bchAddress.toString(bch.Address.LegacyFormat);
 };

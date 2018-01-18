@@ -5,7 +5,11 @@ const delay = require('delay');
 const numeral = require('numeral');
 const Xray = require('x-ray');
 const { shuffle, isNumber } = require('lodash');
-const { formatNumber: n, printError, randomIntFromInterval } = require('./utils');
+const {
+  formatNumber: n,
+  printError,
+  randomIntFromInterval,
+} = require('./utils');
 const bluebird = require('bluebird');
 const redis = require('redis');
 const { RichEmbed } = Discord;
@@ -50,7 +54,11 @@ const redisClient = redis.createClient(REDIS_URL);
 
   console.log('Discord connected');
 
-  const tipping = createTipping({ redisClient, say: _ => channel.send(_), bitcoindUrl: BITCOIND_URL });
+  const tipping = createTipping({
+    redisClient,
+    say: _ => channel.send(_),
+    bitcoindUrl: BITCOIND_URL,
+  });
 
   const welcome = createWelcome({ client });
 
@@ -86,7 +94,9 @@ const redisClient = redis.createClient(REDIS_URL);
         return;
       }
 
-      const commandMatch = firstWord.toLowerCase().match(`^${COMMAND_PREFIX}([a-z0-9]+)$`);
+      const commandMatch = firstWord
+        .toLowerCase()
+        .match(`^${COMMAND_PREFIX}([a-z0-9]+)$`);
 
       if (!commandMatch) {
         return;
@@ -105,7 +115,9 @@ const redisClient = redis.createClient(REDIS_URL);
         recipient: message.channel.recipient,
         client,
         guild: channel.guild,
-        authorIsStaff: !!channel.guild.members.get(message.author.id).roles.get(DISCORD_STAFF_ROLE_ID),
+        authorIsStaff: !!channel.guild.members
+          .get(message.author.id)
+          .roles.get(DISCORD_STAFF_ROLE_ID),
       });
     })().catch(printError)
   );
