@@ -119,11 +119,19 @@ exports.parseBchOrUsdAmount = async value => {
 
   const [, symbol, amount] = match;
 
+  let bchAmount;
+
   if (symbol === '$') {
-    return await usdToBch(amount);
+    bchAmount = await usdToBch(amount);
+  } else {
+    bchAmount = +amount;
   }
 
-  return +(+amount).toFixed(8);
+  if (n(bchAmount).decimalPlaces() > 8) {
+    throw new Error('Too many decimals');
+  }
+
+  return bchAmount;
 };
 
 exports.fetchCoinmarketcap = fetchCoinmarketcap;

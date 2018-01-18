@@ -124,6 +124,8 @@ const redisClient = redis.createClient(REDIS_URL);
         authorIsStaff: !!channel.guild.members
           .get(message.author.id)
           .roles.get(DISCORD_STAFF_ROLE_ID),
+        fetchBitcoinRpc: fetchRpc,
+        lockBitcoind,
       });
     })().catch(printError)
   );
