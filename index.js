@@ -19,6 +19,7 @@ const createTipping = require('./tipping');
 const createRaffle = require('./raffle');
 const router = require('./router');
 const createWelcome = require('./welcome');
+const createBitcoinRpc = require('./bitcoinRpc');
 
 bluebird.promisifyAll(redis.RedisClient.prototype);
 bluebird.promisifyAll(redis.Multi.prototype);
@@ -54,10 +55,15 @@ const redisClient = redis.createClient(REDIS_URL);
 
   console.log('Discord connected');
 
-  const tipping = createTipping({
+  const { fetchRpc, lockBitcoind } = createBitcoinRpc({
     redisClient,
-    say: _ => channel.send(_),
     bitcoindUrl: BITCOIND_URL,
+  });
+
+  const tipping = createTipping({
+    say: _ => channel.send(_),
+    fetchRpc,
+    lockBitcoind,
   });
 
   const welcome = createWelcome({ client });
@@ -68,7 +74,7 @@ const redisClient = redis.createClient(REDIS_URL);
   const raffle = createRaffle({
     interval: +RAFFLE_INTERVAL,
     redisClient,
-    fetchBitcoinRpc: tipping.fetchRpc,
+    fetchBitcoinRpc: fetchRpc,
     say: _ => channel.send(_),
     client,
     tipping,
