@@ -73,7 +73,7 @@ module.exports = async ({
         bchAmount,
       ]);
       assert.equal(moved, true, 'Could not move funds');
-      return reply(`You rolled and **LOST** ${amountText} :frown:`);
+      return reply(`You rolled and **LOST** ${amountText} :frowning:`);
     }
   } finally {
     await lock.unlock();
