@@ -19,7 +19,6 @@ module.exports = async ({ say }) => {
       '`!tip` <recipient> <amount of BCH>',
       'or',
       '`!tip` <recipient> $<amount of USD>',
-      '`!withdraw` <address> <amount of BCH>',
       '',
       '`!roll` <amount of BCH> - Roll a 50/50 dice with your funds. NOT RECOMMENDED',
       '`!shop` - Bitcoin Cash Community Shop',
