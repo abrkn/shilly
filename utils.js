@@ -80,3 +80,19 @@ exports.bchAddressToInternal = address => {
   );
   return bchAddress.toString(bch.Address.LegacyFormat);
 };
+
+exports.parseBoolean = value => {
+  const valueLowerCase = value.toLowerCase();
+
+  if (valueLowerCase === 'true') {
+    return true;
+  }
+
+  if (valueLowerCase === 'false') {
+    return false;
+  }
+
+  throw new Error(
+    `Invalid value for boolean, "${value}". Expected true or false.`
+  );
+};

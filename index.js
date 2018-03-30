@@ -9,6 +9,7 @@ const {
   formatNumber: n,
   printError,
   randomIntFromInterval,
+  parseBoolean,
 } = require('./utils');
 const bluebird = require('bluebird');
 const redis = require('redis');
@@ -34,6 +35,7 @@ const {
   BITCOIND_URL,
   COMMAND_PREFIX = '!',
   DISCORD_STAFF_ROLE_ID,
+  RAFFLE_ENABLED = 'true',
 } = process.env;
 
 assert(DISCORD_TOKEN, 'DISCORD_TOKEN');
@@ -43,6 +45,10 @@ assert(REDIS_URL, 'REDIS_URL');
 assert(DISCORD_STAFF_ROLE_ID, 'DISCORD_STAFF_ROLE_ID');
 
 const redisClient = redis.createClient(REDIS_URL);
+
+const options = {
+  raffleEnabled: parseBoolean(RAFFLE_ENABLED),
+};
 
 (async () => {
   const client = new Discord.Client();
@@ -71,15 +77,17 @@ const redisClient = redis.createClient(REDIS_URL);
   const channel = client.channels.get(DISCORD_CHANNEL_ID);
   assert(channel, `Channel ${DISCORD_CHANNEL_ID} not found`);
 
-  const raffle = createRaffle({
-    interval: +RAFFLE_INTERVAL,
-    redisClient,
-    fetchBitcoinRpc: fetchRpc,
-    say: _ => channel.send(_),
-    client,
-    tipping,
-    channel,
-  });
+  const raffle =
+    options.raffleEnabled &&
+    createRaffle({
+      interval: +RAFFLE_INTERVAL,
+      redisClient,
+      fetchBitcoinRpc: fetchRpc,
+      say: _ => channel.send(_),
+      client,
+      tipping,
+      channel,
+    });
 
   const yoursChannel = client.channels.get(DISCORD_YOURS_ORG_CHANNEL_ID);
   assert(yoursChannel, `Channel ${DISCORD_YOURS_ORG_CHANNEL_ID} not found`);
@@ -131,7 +139,7 @@ const redisClient = redis.createClient(REDIS_URL);
   );
 
   await Promise.all([
-    raffle(),
+    options.raffleEnabled && raffle,
     monitorYours({ redisClient, say: _ => yoursChannel.send(_) }),
     monitorTether({ redisClient, say: _ => channel.send(_) }),
     tipping(),
